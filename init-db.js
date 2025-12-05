@@ -3,10 +3,12 @@ import bcrypt from "bcryptjs";
 
 const db = new sqlite3.Database("./data/database.sqlite");
 
-// Criar tabelas
+// ================================
+// ✅ CRIAR TABELAS
+// ================================
 db.serialize(() => {
   db.run(`
-    CREATE TABLE IF NOT EXISTS usuarios (
+    CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       usuario TEXT UNIQUE,
       senha TEXT
@@ -23,13 +25,15 @@ db.serialize(() => {
     )
   `);
 
-  // Criar usuário admin
+  // ================================
+  // ✅ CRIAR USUÁRIO ADMIN
+  // ================================
   const senhaHash = bcrypt.hashSync("admin123", 10);
 
   db.run(
-    "INSERT OR IGNORE INTO usuarios (usuario, senha) VALUES (?,?)",
+    "INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)",
     ["admin", senhaHash]
   );
 
-  console.log("✔ Banco de dados inicializado.");
+  console.log("✔ Banco de dados inicializado corretamente.");
 });
