@@ -5,23 +5,34 @@ import jwt from "jsonwebtoken";
 import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
 
 dotenv.config();
+
+// Corrigir caminhos no Render (ESM)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
 
-const db = new sqlite3.Database("./data/database.sqlite");
+// Servir arquivos estáticos (public/)
+app.use(express.static(path.join(__dirname, "public")));
+
+// Conectar ao banco SQLite
+const db = new sqlite3.Database(path.join(__dirname, "data", "database.sqlite"));
 
 // ================= JWT Middleware ==================
 function verificarToken(req, res, next) {
-  const token = req.headers["authorization"];
-  if (!token) return res.status(403).json({ error: "Token ausente" });
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) return res.status(403).json({ error: "Token ausente" });
 
-  jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET, (err, decoded) => {
+  const token = authHeader.replace("Bearer ", "");
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) return res.status(401).json({ error: "Token inválido" });
+
     req.user = decoded;
     next();
   });
@@ -32,11 +43,10 @@ app.post("/api/login", (req, res) => {
   const { usuario, senha } = req.body;
 
   db.get("SELECT * FROM usuarios WHERE usuario = ?", [usuario], (err, user) => {
-    if (err) return res.json({ error: err });
+    if (err) return res.status(500).json({ error: "Erro no banco" });
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
     const senhaValida = bcrypt.compareSync(senha, user.senha);
-
     if (!senhaValida) return res.status(401).json({ error: "Senha incorreta" });
 
     const token = jwt.sign(
@@ -52,7 +62,7 @@ app.post("/api/login", (req, res) => {
 // ================= LISTAR LANÇAMENTOS ================
 app.get("/api/lancamentos", verificarToken, (req, res) => {
   db.all("SELECT * FROM lancamentos ORDER BY data DESC", [], (err, rows) => {
-    if (err) return res.json({ error: err });
+    if (err) return res.status(500).json({ error: err });
     res.json(rows);
   });
 });
@@ -65,13 +75,20 @@ app.post("/api/lancamentos", verificarToken, (req, res) => {
     "INSERT INTO lancamentos (tipo, descricao, valor, data) VALUES (?,?,?,?)",
     [tipo, descricao, valor, data],
     err => {
-      if (err) return res.json({ error: err });
+      if (err) return res.status(500).json({ error: err });
       res.json({ message: "Lançamento adicionado" });
     }
   );
 });
 
-// ================== SERVIDOR ====================
-app.listen(3000, () => {
-  console.log("✔ Servidor rodando em http://localhost:3000");
+// ================== ROTA SPA (Render fix) ====================
+// Se acessar /login ou /alguma-pagina → entregar index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// ================== INICIAR SERVIDOR ====================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✔ Servidor rodando na porta ${PORT}`);
 });
