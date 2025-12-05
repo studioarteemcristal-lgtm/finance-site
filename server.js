@@ -13,6 +13,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ✅ SERVIR ARQUIVOS ESTÁTICOS (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, "public")));
+
 // ✅ GARANTIR PASTA DO BANCO
 const pastaDB = path.join(__dirname, "data");
 if (!fs.existsSync(pastaDB)) {
