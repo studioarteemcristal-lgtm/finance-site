@@ -1,48 +1,105 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f4f7fb;
+  background: linear-gradient(135deg, #e3edff, #f7faff);
   padding: 0;
   margin: 0;
 }
+
+/* ================= HEADER ================= */
 
 header {
   display: flex;
   align-items: center;
   gap: 15px;
   background: #ffffff;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+  padding: 15px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
 }
 
 .logo {
   height: 60px;
 }
 
+h1 {
+  font-size: 22px;
+  margin: 0;
+}
+
+/* ================= CONTEÚDO ================= */
+
 .content {
   padding: 20px;
 }
+
+/* ================= TABELA ================= */
 
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 thead {
-  background: #d0e1ff;
+  background: #3b82f6;
+  color: white;
 }
 
 td, th {
   padding: 10px;
   border-bottom: 1px solid #ddd;
+  text-align: left;
 }
 
+tr:hover {
+  background: #f1f5ff;
+}
+
+/* ================= LOGIN ================= */
+
 .login-box {
-  max-width: 300px;
-  margin: 80px auto;
-  padding: 20px;
+  max-width: 320px;
+  margin: 100px auto;
+  padding: 25px;
   background: white;
-  box-shadow: 0 0 8px rgba(0,0,0,.1);
+  box-shadow: 0 10px 25px rgba(0,0,0,.15);
   text-align: center;
-  border-radius: 8px;
+  border-radius: 10px;
+}
+
+.login-box h2 {
+  margin-bottom: 20px;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 10px;
+  background: #3b82f6;
+  border: none;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.login-box button:hover {
+  background: #2563eb;
+}
+
+#erro {
+  color: red;
+  margin-top: 10px;
+  font-size: 14px;
 }
