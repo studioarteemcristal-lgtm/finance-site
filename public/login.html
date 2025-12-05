@@ -3,18 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>Login</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="auth.js" defer></script>
+
+  <!-- ✅ Caminho correto do CSS -->
+  <link rel="stylesheet" href="./style.css">
+
+  <!-- ✅ Carregamento seguro do JS -->
+  <script src="./auth.js" defer></script>
 </head>
 <body>
   <div class="login-box">
-    <img src="logo.png" class="logo">
+    <!-- ✅ Logo opcional -->
+    <img src="./logo.png" class="logo">
+
     <h2>Login</h2>
 
-    <input id="usuario" placeholder="Usuário">
-    <input id="senha" placeholder="Senha" type="password">
+    <!-- ✅ IDs corretos para o JS -->
+    <input id="usuario" placeholder="Usuário" autocomplete="username">
+
+    <input id="senha" placeholder="Senha" type="password" autocomplete="current-password">
+
+    <!-- ✅ Chamada direta da função -->
     <button onclick="login()">Entrar</button>
 
+    <!-- ✅ Local para mensagem de erro -->
     <p id="erro"></p>
   </div>
 </body>
