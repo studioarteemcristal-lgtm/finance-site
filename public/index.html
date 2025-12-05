@@ -3,13 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <title>Painel Financeiro</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="auth.js" defer></script>
-  <script src="app.js" defer></script>
+
+  <!-- ✅ Caminho correto do CSS -->
+  <link rel="stylesheet" href="./style.css">
+
+  <!-- ✅ Autenticação primeiro -->
+  <script src="./auth.js" defer></script>
+
+  <!-- ✅ Lógica do painel depois -->
+  <script src="./app.js" defer></script>
 </head>
 <body>
   <header>
-    <img src="logo.png" class="logo">
+    <img src="./logo.png" class="logo">
     <h1>Painel Financeiro</h1>
   </header>
 
@@ -22,9 +28,9 @@
         <option value="saida">Saída</option>
       </select>
 
-      <input id="descricao" placeholder="Descrição">
-      <input id="valor" type="number" step="0.01" placeholder="Valor">
-      <input id="data" type="date">
+      <input id="descricao" placeholder="Descrição" required>
+      <input id="valor" type="number" step="0.01" placeholder="Valor" required>
+      <input id="data" type="date" required>
 
       <button type="submit">Adicionar</button>
     </form>
