@@ -21,7 +21,7 @@ app.use(express.json());
 // ==============================
 app.use(express.static(path.join(__dirname, "public")));
 
-// Abre login automaticamente no root
+// Abrir o login direto no root "/"
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
@@ -47,7 +47,7 @@ const db = new sqlite3.Database(path.join(pastaDB, "database.sqlite"), err => {
 });
 
 // ==============================
-// CRIAR TABELA SE NÃO EXISTIR
+// CRIAR TABELA USERS
 // ==============================
 db.run(`
   CREATE TABLE IF NOT EXISTS users (
@@ -58,7 +58,24 @@ db.run(`
 `);
 
 // ==============================
-// ROTA DE LOGIN (100% BLINDADA)
+// GARANTIR USUÁRIO PADRÃO
+// ==============================
+const senhaCriptografada = bcrypt.hashSync("Bn@75406320", 10);
+
+db.run(
+  "INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)",
+  ["leilaine", senhaCriptografada],
+  err => {
+    if (err) {
+      console.log("❌ Erro ao garantir usuário:", err);
+    } else {
+      console.log("✅ Usuário 'leilaine' garantido no banco!");
+    }
+  }
+);
+
+// ==============================
+// ROTA DE LOGIN (100% FUNCIONAL)
 // ==============================
 app.post("/api/login", (req, res) => {
   try {
@@ -81,11 +98,6 @@ app.post("/api/login", (req, res) => {
           return res.status(401).json({ erro: "Usuário não encontrado" });
         }
 
-        if (!user.senha) {
-          console.error("❌ Senha vazia no banco!");
-          return res.status(500).json({ erro: "Senha inválida no servidor" });
-        }
-
         const senhaOK = bcrypt.compareSync(senha, user.senha);
 
         if (!senhaOK) {
@@ -102,7 +114,7 @@ app.post("/api/login", (req, res) => {
 });
 
 // ==============================
-// INICIAR SERVIDOR (OBRIGATÓRIO)
+// INICIAR SERVIDOR (RENDER)
 // ==============================
 const PORT = process.env.PORT || 3000;
 
