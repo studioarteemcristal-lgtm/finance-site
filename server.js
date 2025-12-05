@@ -47,32 +47,31 @@ const db = new sqlite3.Database(path.join(pastaDB, "database.sqlite"), err => {
 });
 
 // ==============================
-// CRIAR TABELA USERS
+// CRIAR TABELA + GARANTIR USUÁRIO (ORDEM SEGURA)
 // ==============================
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    usuario TEXT UNIQUE,
-    senha TEXT
-  )
-`);
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario TEXT UNIQUE,
+      senha TEXT
+    )
+  `);
 
-// ==============================
-// GARANTIR USUÁRIO PADRÃO
-// ==============================
-const senhaCriptografada = bcrypt.hashSync("Bn@75406320", 10);
+  const senhaCriptografada = bcrypt.hashSync("Bn@75406320", 10);
 
-db.run(
-  "INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)",
-  ["leilaine", senhaCriptografada],
-  err => {
-    if (err) {
-      console.log("❌ Erro ao garantir usuário:", err);
-    } else {
-      console.log("✅ Usuário 'leilaine' garantido no banco!");
+  db.run(
+    "INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)",
+    ["leilaine", senhaCriptografada],
+    err => {
+      if (err) {
+        console.log("❌ Erro ao garantir usuário:", err);
+      } else {
+        console.log("✅ Usuário 'leilaine' garantido no banco!");
+      }
     }
-  }
-);
+  );
+});
 
 // ==============================
 // ROTA DE LOGIN (100% FUNCIONAL)
@@ -116,7 +115,7 @@ app.post("/api/login", (req, res) => {
 // ==============================
 // INICIAR SERVIDOR (RENDER)
 // ==============================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log("✅ Servidor rodando na porta", PORT);
