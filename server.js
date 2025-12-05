@@ -6,6 +6,9 @@ import cors from "cors";
 import bcrypt from "bcryptjs";
 import { fileURLToPath } from "url";
 
+// ==============================
+// CONFIGURAÇÕES INICIAIS
+// ==============================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -13,41 +16,94 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ SERVIR ARQUIVOS ESTÁTICOS (HTML, CSS, JS)
+// ==============================
+// SERVIR ARQUIVOS ESTÁTICOS
+// ==============================
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ GARANTIR PASTA DO BANCO
+// Abre login automaticamente no root
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+// ==============================
+// GARANTIR PASTA DO BANCO
+// ==============================
 const pastaDB = path.join(__dirname, "data");
+
 if (!fs.existsSync(pastaDB)) {
   fs.mkdirSync(pastaDB, { recursive: true });
 }
 
-const db = new sqlite3.Database(path.join(pastaDB, "database.sqlite"));
-
-// ✅ ROTA DE LOGIN FUNCIONAL
-app.post("/api/login", (req, res) => {
-  const { usuario, senha } = req.body;
-
-  if (!usuario || !senha) {
-    return res.status(400).json({ erro: "Dados incompletos" });
+// ==============================
+// ABRIR BANCO SQLITE
+// ==============================
+const db = new sqlite3.Database(path.join(pastaDB, "database.sqlite"), err => {
+  if (err) {
+    console.error("❌ Erro ao abrir banco:", err);
+  } else {
+    console.log("✅ Banco conectado com sucesso!");
   }
-
-  db.get(
-    "SELECT * FROM users WHERE usuario = ?",
-    [usuario],
-    (err, user) => {
-      if (err) return res.status(500).json({ erro: "Erro no banco" });
-      if (!user) return res.status(401).json({ erro: "Usuário não existe" });
-
-      const senhaOK = bcrypt.compareSync(senha, user.senha);
-      if (!senhaOK) return res.status(401).json({ erro: "Senha incorreta" });
-
-      res.json({ sucesso: true });
-    }
-  );
 });
 
-// ✅ OBRIGATÓRIO NO RENDER
+// ==============================
+// CRIAR TABELA SE NÃO EXISTIR
+// ==============================
+db.run(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario TEXT UNIQUE,
+    senha TEXT
+  )
+`);
+
+// ==============================
+// ROTA DE LOGIN (100% BLINDADA)
+// ==============================
+app.post("/api/login", (req, res) => {
+  try {
+    const { usuario, senha } = req.body;
+
+    if (!usuario || !senha) {
+      return res.status(400).json({ erro: "Usuário ou senha ausentes" });
+    }
+
+    db.get(
+      "SELECT * FROM users WHERE usuario = ?",
+      [usuario],
+      (err, user) => {
+        if (err) {
+          console.error("❌ Erro no banco:", err);
+          return res.status(500).json({ erro: "Erro no banco de dados" });
+        }
+
+        if (!user) {
+          return res.status(401).json({ erro: "Usuário não encontrado" });
+        }
+
+        if (!user.senha) {
+          console.error("❌ Senha vazia no banco!");
+          return res.status(500).json({ erro: "Senha inválida no servidor" });
+        }
+
+        const senhaOK = bcrypt.compareSync(senha, user.senha);
+
+        if (!senhaOK) {
+          return res.status(401).json({ erro: "Senha incorreta" });
+        }
+
+        res.json({ sucesso: true });
+      }
+    );
+  } catch (e) {
+    console.error("❌ ERRO GERAL LOGIN:", e);
+    res.status(500).json({ erro: "Falha grave no servidor" });
+  }
+});
+
+// ==============================
+// INICIAR SERVIDOR (OBRIGATÓRIO)
+// ==============================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
