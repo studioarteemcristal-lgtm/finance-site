@@ -42,8 +42,9 @@ function verificarToken(req, res, next) {
 app.post("/api/login", (req, res) => {
   const { usuario, senha } = req.body;
 
-  db.get("SELECT * FROM usuarios WHERE usuario = ?", [usuario], (err, user) => {
-    if (err) return res.status(500).json({ error: "Erro no banco" });
+  // 🔥 CORRIGIDO: tabela correta é "users"
+  db.get("SELECT * FROM users WHERE usuario = ?", [usuario], (err, user) => {
+    if (err) return res.status(500).json({ error: "Erro no banco", detalhe: err });
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
     const senhaValida = bcrypt.compareSync(senha, user.senha);
@@ -82,7 +83,6 @@ app.post("/api/lancamentos", verificarToken, (req, res) => {
 });
 
 // ================== ROTA SPA (Render fix) ====================
-// Se acessar /login ou /alguma-pagina → entregar index.html
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
