@@ -5,15 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel Financeiro</title>
 
-  <!-- CSS -->
   <link rel="stylesheet" href="/style.css" />
-
-  <!-- Scripts -->
   <script src="/auth.js" defer></script>
   <script src="/app.js" defer></script>
 
   <style>
-    /* ===== CARDS ===== */
     .cards {
       display: flex;
       gap: 20px;
@@ -30,24 +26,12 @@
       text-align: center;
     }
 
-    .card h3 {
-      margin-bottom: 10px;
-      font-size: 20px;
-    }
+    .card h3 { margin-bottom: 10px; font-size: 20px; }
 
-    .entrada {
-      color: green;
-    }
+    .entrada { color: green; }
+    .saida { color: red; }
+    .caixa { color: #007bff; }
 
-    .saida {
-      color: red;
-    }
-
-    .caixa {
-      color: #007bff;
-    }
-
-    /* Botão sair */
     #logoutBtn {
       position: absolute;
       right: 20px;
@@ -61,12 +45,10 @@
       font-size: 15px;
     }
 
-    #logoutBtn:hover {
-      background: #c9302c;
-    }
+    #logoutBtn:hover { background: #c9302c; }
   </style>
-
 </head>
+
 <body>
 
   <header class="header">
@@ -77,14 +59,13 @@
 
   <main class="content">
 
-    <!-- ====== CARDS ====== -->
     <div class="cards">
       <div class="card entrada">
         <h3>Entradas</h3>
         <p id="totalVendas">R$ 0,00</p>
       </div>
 
-      <div class="card saída">
+      <div class="card saida">
         <h3>Saídas</h3>
         <p id="totalCompras">R$ 0,00</p>
       </div>
@@ -97,7 +78,6 @@
 
     <h2>Lançamentos</h2>
 
-    <!-- Formulário -->
     <form id="formLancamento">
       <select id="tipo" required>
         <option value="entrada">Entrada</option>
@@ -111,7 +91,6 @@
       <button type="submit">Adicionar</button>
     </form>
 
-    <!-- Tabela -->
     <table id="tabela">
       <thead>
         <tr>
@@ -126,7 +105,6 @@
   </main>
 
   <script>
-    // Botão sair
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("token");
       window.location.href = "login.html";
