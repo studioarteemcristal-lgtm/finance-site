@@ -12,22 +12,16 @@ async function login() {
       body: JSON.stringify({ usuario, senha })
     });
 
-    let dados;
-    try {
-      dados = await resp.json();
-    } catch {
-      erro.innerText = "Resposta inválida do servidor";
-      return;
-    }
+    const dados = await resp.json();
 
-    if (resp.ok && dados.sucesso) {
-      // marca como logado
+    if (resp.ok && dados.token) {
+      // Salva token e marca login
+      localStorage.setItem("token", dados.token);
       localStorage.setItem("logado", "true");
 
-      // redireciona para página principal
       window.location.href = "index.html";
     } else {
-      erro.innerText = "Usuário ou senha incorretos";
+      erro.innerText = dados.erro || "Usuário ou senha incorretos";
     }
   } catch (e) {
     erro.innerText = "Erro ao conectar com o servidor";
