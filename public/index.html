@@ -5,23 +5,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel Financeiro</title>
 
-  <!-- CSS (caminho relativo correto) -->
-  <link rel="stylesheet" href="./style.css" />
+  <!-- CSS -->
+  <link rel="stylesheet" href="/style.css" />
 
-  <!-- Scripts (também relativos) -->
-  <script src="./auth.js" defer></script>
-  <script src="./app.js" defer></script>
+  <!-- Scripts -->
+  <script src="/auth.js" defer></script>
+  <script src="/app.js" defer></script>
+
+  <style>
+    /* ===== CARDS ===== */
+    .cards {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      flex: 1;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .entrada {
+      color: green;
+    }
+
+    .saida {
+      color: red;
+    }
+
+    .caixa {
+      color: #007bff;
+    }
+
+    /* Botão sair */
+    #logoutBtn {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      background: #d9534f;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    #logoutBtn:hover {
+      background: #c9302c;
+    }
+  </style>
+
 </head>
 <body>
+
   <header class="header">
-    <img src="./logo.png" class="logo" alt="Logo" />
+    <img src="/logo.png" class="logo" alt="Logo" />
     <h1>Painel Financeiro</h1>
+    <button id="logoutBtn">Sair</button>
   </header>
 
   <main class="content">
+
+    <!-- ====== CARDS ====== -->
+    <div class="cards">
+      <div class="card entrada">
+        <h3>Entradas</h3>
+        <p id="totalVendas">R$ 0,00</p>
+      </div>
+
+      <div class="card saída">
+        <h3>Saídas</h3>
+        <p id="totalCompras">R$ 0,00</p>
+      </div>
+
+      <div class="card caixa">
+        <h3>Caixa</h3>
+        <p id="totalCaixa">R$ 0,00</p>
+      </div>
+    </div>
+
     <h2>Lançamentos</h2>
 
-    <!-- Formulário de lançamentos -->
+    <!-- Formulário -->
     <form id="formLancamento">
       <select id="tipo" required>
         <option value="entrada">Entrada</option>
@@ -35,7 +111,7 @@
       <button type="submit">Adicionar</button>
     </form>
 
-    <!-- Tabela de lançamentos -->
+    <!-- Tabela -->
     <table id="tabela">
       <thead>
         <tr>
@@ -48,5 +124,14 @@
       <tbody></tbody>
     </table>
   </main>
+
+  <script>
+    // Botão sair
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    });
+  </script>
+
 </body>
 </html>
