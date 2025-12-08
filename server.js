@@ -14,24 +14,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// servir estáticos
+// servir arquivos estáticos (página e assets)
 app.use(express.static(path.join(__dirname, "public")));
 
+// rota raiz serve login.html
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// banco
+// pasta do banco (cria se não existir)
 const pastaDB = path.join(__dirname, "data");
 if (!fs.existsSync(pastaDB)) fs.mkdirSync(pastaDB, { recursive: true });
 
+// arquivo do banco
 const dbPath = path.join(pastaDB, "database.sqlite");
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error("❌ Erro ao abrir banco:", err);
   else console.log("✅ Banco conectado em", dbPath);
 });
 
-// criar tabelas
+// cria tabelas se não existirem
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -50,13 +52,12 @@ db.serialize(() => {
       data TEXT
     )
   `);
-
-  const senhaPadrao = bcrypt.hashSync("Bn@75406320", 10);
-  db.run("INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)", ["leilaine", senhaPadrao]);
 });
 
+// segredo JWT (use variável de ambiente em produção)
 const JWT_SECRET = process.env.JWT_SECRET || "CHAVE_SUPER_SECRETA_123";
 
+// middleware para verificar token Bearer
 function verificarToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ erro: "Token ausente" });
@@ -68,7 +69,7 @@ function verificarToken(req, res, next) {
   });
 }
 
-// login
+// rota de login
 app.post("/api/login", (req, res) => {
   const { usuario, senha } = req.body;
   if (!usuario || !senha) return res.status(400).json({ erro: "Dados incompletos" });
@@ -76,17 +77,18 @@ app.post("/api/login", (req, res) => {
   db.get("SELECT * FROM users WHERE usuario = ?", [usuario], (err, user) => {
     if (err) return res.status(500).json({ erro: "Erro no servidor" });
     if (!user) return res.status(401).json({ erro: "Usuário não encontrado" });
+
     const senhaOK = bcrypt.compareSync(senha, user.senha);
     if (!senhaOK) return res.status(401).json({ erro: "Senha incorreta" });
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "2h" });
+
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "8h" });
     res.json({ token });
   });
 });
 
-// GET lancamentos (com filtro opcional por data: ?from=YYYY-MM-DD&to=YYYY-MM-DD)
+// GET lancamentos com filtros opcionais ?from=YYYY-MM-DD&to=YYYY-MM-DD
 app.get("/api/lancamentos", verificarToken, (req, res) => {
   const { from, to } = req.query;
-
   let sql = "SELECT * FROM lancamentos";
   const params = [];
 
@@ -109,7 +111,7 @@ app.get("/api/lancamentos", verificarToken, (req, res) => {
   });
 });
 
-// GET por id (opcional, útil)
+// GET por id
 app.get("/api/lancamentos/:id", verificarToken, (req, res) => {
   const id = req.params.id;
   db.get("SELECT * FROM lancamentos WHERE id = ?", [id], (err, row) => {
@@ -157,5 +159,6 @@ app.delete("/api/lancamentos/:id", verificarToken, (req, res) => {
   });
 });
 
+// start
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("🚀 Servidor rodando na porta " + PORT));
