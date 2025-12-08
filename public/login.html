@@ -1,45 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login</title>
-
-  <!-- CSS no caminho certo -->
-  <link rel="stylesheet" href="./style.css">
-
-  <!-- JavaScript carregado de forma segura -->
-  <script src="./auth.js" defer></script>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="/auth.js" defer></script>
 </head>
 <body>
   <div class="login-box">
-
-    <!-- Logo (opcional) -->
-    <img src="./logo.png" alt="Logo" class="logo">
-
+    <img src="/logo.png" class="logo" alt="Logo" />
     <h2>Login</h2>
-
-    <!-- Campo Usuário -->
-    <input 
-      id="usuario" 
-      placeholder="Usuário" 
-      autocomplete="username"
-      required
-    >
-
-    <!-- Campo Senha -->
-    <input 
-      id="senha" 
-      placeholder="Senha" 
-      type="password"
-      autocomplete="current-password"
-      required
-    >
-
-    <!-- Botão que chama a função login() do auth.js -->
+    <input id="usuario" placeholder="Usuário" autocomplete="username" />
+    <input id="senha" placeholder="Senha" type="password" autocomplete="current-password" />
     <button onclick="login()">Entrar</button>
-
-    <!-- Mensagem de erro -->
-    <p id="erro" class="erro"></p>
+    <p id="erro"></p>
   </div>
 </body>
 </html>
