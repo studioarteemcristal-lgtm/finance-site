@@ -1,13 +1,9 @@
 {
   "name": "finance-site",
   "version": "1.0.0",
-  "description": "Painel financeiro com Node + SQLite + JWT",
   "type": "module",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "init-db": "node init-db.js",
-    "init-user": "node init-user.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
