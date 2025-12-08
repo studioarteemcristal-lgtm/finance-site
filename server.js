@@ -14,10 +14,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// servir arquivos estáticos (página e assets)
+// servir estáticos (pasta public)
 app.use(express.static(path.join(__dirname, "public")));
 
-// rota raiz serve login.html
+// rota raiz -> login
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
@@ -26,14 +26,13 @@ app.get("/", (req, res) => {
 const pastaDB = path.join(__dirname, "data");
 if (!fs.existsSync(pastaDB)) fs.mkdirSync(pastaDB, { recursive: true });
 
-// arquivo do banco
 const dbPath = path.join(pastaDB, "database.sqlite");
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error("❌ Erro ao abrir banco:", err);
   else console.log("✅ Banco conectado em", dbPath);
 });
 
-// cria tabelas se não existirem
+// cria tabelas e insere usuário padrão automaticamente
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -52,12 +51,23 @@ db.serialize(() => {
       data TEXT
     )
   `);
+
+  // usuário padrão: leilaine / Bn@75406320
+  const senhaPadrao = bcrypt.hashSync("Bn@75406320", 10);
+  db.run(
+    "INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)",
+    ["leilaine", senhaPadrao],
+    (err) => {
+      if (err) console.error("Erro ao garantir usuário padrão:", err);
+      else console.log("✅ Usuário padrão garantido: leilaine");
+    }
+  );
 });
 
-// segredo JWT (use variável de ambiente em produção)
+// segredo JWT (em produção use var de ambiente)
 const JWT_SECRET = process.env.JWT_SECRET || "CHAVE_SUPER_SECRETA_123";
 
-// middleware para verificar token Bearer
+// middleware para verificar token (Bearer)
 function verificarToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ erro: "Token ausente" });
@@ -69,7 +79,7 @@ function verificarToken(req, res, next) {
   });
 }
 
-// rota de login
+// rota login
 app.post("/api/login", (req, res) => {
   const { usuario, senha } = req.body;
   if (!usuario || !senha) return res.status(400).json({ erro: "Dados incompletos" });
@@ -159,6 +169,5 @@ app.delete("/api/lancamentos/:id", verificarToken, (req, res) => {
   });
 });
 
-// start
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("🚀 Servidor rodando na porta " + PORT));
