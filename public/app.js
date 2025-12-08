@@ -1,49 +1,107 @@
-function renderizarTabela(lista = []) {
-  const tbody = document.querySelector("#tabela tbody");
-  if (!tbody) {
-    logError("Elemento #tabela tbody não encontrado.");
-    return;
+const API = window.location.origin;
+
+// ==============================
+// VERIFICAR LOGIN
+// ==============================
+function verificarLogin() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "login.html";
   }
+}
 
-  tbody.innerHTML = "";
+// ==============================
+// CARREGAR LANÇAMENTOS
+// ==============================
+async function carregarLancamentos() {
+  const token = localStorage.getItem("token");
 
-  let totalVendas = 0;
-  let totalCompras = 0;
+  try {
+    const resp = await fetch(API + "/api/lancamentos", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    });
 
-  if (!Array.isArray(lista) || lista.length === 0) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="4" style="text-align:center; padding:16px;">Nenhum lançamento</td>`;
-    tbody.appendChild(tr);
-    return;
+    if (!resp.ok) {
+      console.error("Erro ao buscar lançamentos");
+      return;
+    }
+
+    const lista = await resp.json();
+    renderizarTabela(lista);
+
+  } catch (e) {
+    console.error("Erro ao conectar:", e);
   }
+}
 
-  lista.forEach(l => {
-    const tr = document.createElement("tr");
+// ==============================
+// ADICIONAR LANÇAMENTO
+// ==============================
+async function adicionarLancamento() {
+  const tipo = document.getElementById("tipo").value;
+  const descricao = document.getElementById("descricao").value;
+  const valor = parseFloat(document.getElementById("valor").value);
+  const data = document.getElementById("data").value;
 
-    const tipo = String(l.tipo ?? "");
-    const descricao = String(l.descricao ?? "");
-    const valor = Number(l.valor ?? 0);
-    const data = l.data ?? "";
+  const token = localStorage.getItem("token");
 
-    // soma valores
-    if (tipo === "entrada") totalVendas += valor;
-    if (tipo === "saida") totalCompras += valor;
+  try {
+    const resp = await fetch(API + "/api/lancamentos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({ tipo, descricao, valor, data })
+    });
 
-    // adiciona classe de cor
-    tr.classList.add(tipo);
+    if (!resp.ok) {
+      alert("Erro ao salvar");
+      return;
+    }
 
-    tr.innerHTML = `
-      <td>${escapeHtml(tipo)}</td>
-      <td>${escapeHtml(descricao)}</td>
-      <td>${formatCurrencyBR(valor)}</td>
-      <td>${formatDateISOtoBR(data)}</td>
-    `;
+    await carregarLancamentos();
 
-    tbody.appendChild(tr);
+  } catch (e) {
+    alert("Erro ao conectar ao servidor");
+  }
+}
+
+// ==============================
+// EVENTOS
+// ==============================
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.location.pathname.includes("index.html")) {
+    verificarLogin();
+    carregarLancamentos();
+
+    document.getElementById("btnAdicionar")
+      ?.addEventListener("click", adicionarLancamento);
+  }
+});
+
+// ==============================
+// FUNÇÕES AUXILIARES
+// ==============================
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;', '<': '&lt;', '>': '&gt;',
+    '"': '&quot;', "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function formatCurrencyBR(value) {
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
   });
+}
 
-  // Atualiza cards
-  document.getElementById("totalVendas").innerText = formatCurrencyBR(totalVendas);
-  document.getElementById("totalCompras").innerText = formatCurrencyBR(totalCompras);
-  document.getElementById("totalCaixa").innerText = formatCurrencyBR(totalVendas - totalCompras);
+function formatDateISOtoBR(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
 }
