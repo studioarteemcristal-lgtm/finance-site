@@ -1,10 +1,14 @@
-// auth.js — login simples que recebe token e salva em localStorage
+// auth.js (frontend)
 async function login() {
   const usuario = document.getElementById("usuario").value.trim();
   const senha = document.getElementById("senha").value.trim();
-  const erroEl = document.getElementById("erro");
+  const erro = document.getElementById("erro");
+  erro.innerText = "";
 
-  erroEl.textContent = "";
+  if (!usuario || !senha) {
+    erro.innerText = "Preencha usuário e senha";
+    return;
+  }
 
   try {
     const resp = await fetch("/api/login", {
@@ -13,17 +17,16 @@ async function login() {
       body: JSON.stringify({ usuario, senha })
     });
 
-    const dados = await resp.json();
-    if (resp.ok && dados.token) {
-      localStorage.setItem("token", dados.token);
+    const data = await resp.json();
+
+    if (resp.ok && data.token) {
+      localStorage.setItem("token", data.token);
       window.location.href = "index.html";
     } else {
-      erroEl.textContent = dados.erro || "Usuário ou senha incorretos";
+      erro.innerText = data.erro || "Usuário ou senha incorretos";
     }
   } catch (e) {
-    erroEl.textContent = "Erro ao conectar com o servidor";
+    erro.innerText = "Erro ao conectar com o servidor";
     console.error(e);
   }
 }
-
-window.login = login;
