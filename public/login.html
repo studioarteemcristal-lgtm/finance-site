@@ -1,20 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login - Painel Financeiro</title>
   <link rel="stylesheet" href="/style.css" />
   <script src="/auth.js" defer></script>
 </head>
 <body>
-  <div class="login-box">
+  <header class="header">
     <img src="/logo.png" class="logo" alt="Logo" />
-    <h2>Login</h2>
-    <input id="usuario" placeholder="Usuário" autocomplete="username" />
-    <input id="senha" placeholder="Senha" type="password" autocomplete="current-password" />
-    <button onclick="login()">Entrar</button>
-    <p id="erro"></p>
-  </div>
+    <h1>Painel Financeiro</h1>
+  </header>
+
+  <main class="login-main">
+    <div class="login-box">
+      <h2>Login</h2>
+      <input id="usuario" placeholder="Usuário" autocomplete="username" />
+      <input id="senha" placeholder="Senha" type="password" autocomplete="current-password" />
+      <button onclick="login()">Entrar</button>
+      <p id="erro" class="erro"></p>
+      <p style="font-size:12px;color:#666;margin-top:8px;">Usuário padrão: <b>leilaine</b> / Senha: <b>Bn@75406320</b></p>
+    </div>
+  </main>
 </body>
 </html>
