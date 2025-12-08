@@ -19,7 +19,7 @@ header {
 }
 
 header .logo {
-  height: 45px; /* menor */
+  height: 45px;
 }
 
 header h1 {
@@ -64,7 +64,7 @@ header h1 {
 .card {
   background: white;
   padding: 18px;
-  width: 180px;       /* menor */
+  width: 180px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
   border-left: 4px solid #3b82f6;
@@ -78,13 +78,13 @@ header h1 {
 
 .card h3 {
   margin: 0;
-  font-size: 15px;  /* menor */
+  font-size: 15px;
   color: #333;
 }
 
 .card p {
   margin-top: 8px;
-  font-size: 20px; /* menor */
+  font-size: 20px;
   font-weight: bold;
   color: #111;
 }
@@ -94,8 +94,37 @@ header h1 {
 .logo-central {
   display: block;
   margin: 20px auto;
-  max-width: 280px;   /* reduzido */
+  max-width: 280px;
   border-radius: 12px;
+}
+
+/* ================= GRÁFICOS (NOVO E OTIMIZADO) ================= */
+
+.graficos-wrapper {
+  display: flex;
+  gap: 25px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.grafico-container {
+  width: 48%;
+  max-width: 580px;
+  min-width: 280px;
+  height: 350px; /* Ajuste principal para não ficar gigante */
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.08);
+}
+
+/* Em celulares — um gráfico por linha */
+@media (max-width: 768px) {
+  .grafico-container {
+    width: 100%;
+    height: 300px;
+  }
 }
 
 /* ================= TABELA ================= */
