@@ -1,112 +1,106 @@
+/* ================================
+   CONFIGURAÇÕES GERAIS
+================================ */
 body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #e3edff, #f7faff);
-  padding: 0;
   margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  min-height: 100vh;
 }
 
-/* ================= HEADER ================= */
-
+/* ================================
+   HEADER / LOGO / BOTÃO SAIR
+================================ */
 header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  background: #ffffff;
-  padding: 15px 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  padding: 20px;
+  color: white;
 }
 
 .logo {
-  height: 60px;
+  font-size: 24px;
+  font-weight: bold;
 }
 
-h1 {
-  font-size: 22px;
-  margin: 0;
+#logoutButton {
+  background: #ef4444;
+  border: none;
+  padding: 10px 16px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-/* ================= CONTEÚDO ================= */
+#logoutButton:hover {
+  background: #dc2626;
+}
 
-.content {
+/* ================================
+   CONTAINER PRINCIPAL
+================================ */
+.container {
+  max-width: 1200px;
+  margin: 40px auto;
   padding: 20px;
 }
 
-/* ================= CARDS ================= */
-
+/* ================================
+   CARDS DE INDICADORES
+================================ */
 .cards {
   display: flex;
   gap: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .card {
+  flex: 1;
   background: white;
   padding: 20px;
-  width: 220px;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,.1);
-  border-left: 5px solid #3b82f6;
-  transition: transform .2s;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border-left: 8px solid #3b82f6;
+  transition: transform .2s ease;
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
 }
 
 .card h3 {
   margin: 0;
-  font-size: 16px;
-  color: #333;
+  color: #555;
 }
 
 .card p {
-  margin-top: 10px;
-  font-size: 22px;
+  font-size: 26px;
+  margin: 10px 0 0 0;
   font-weight: bold;
-  color: #111;
 }
 
-/* ================= TABELA ================= */
+/* Cores individuais (opcional, melhora visual) */
+.card.entrada { border-left-color: #22c55e; }
+.card.saida   { border-left-color: #ef4444; }
+.card.caixa   { border-left-color: #3b82f6; }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
+/* ================================
+   FORMULÁRIO DE LANÇAMENTOS
+================================ */
+form {
   background: white;
-  border-radius: 6px;
-  overflow: hidden;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
 }
-
-thead {
-  background: #3b82f6;
-  color: white;
-}
-
-td, th {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
-
-tr:hover {
-  background: #f1f5ff;
-}
-
-/* ====== CORES DAS LINHAS ====== */
-
-tr.entrada {
-  background: #d9fdd3 !important; /* Verde suave */
-}
-
-tr.saida {
-  background: #ffd6d6 !important; /* Vermelho suave */
-}
-
-/* ================= FORMULÁRIO ================= */
 
 form input, form select, form button {
-  padding: 8px;
-  font-size: 14px;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
   border-radius: 6px;
   border: 1px solid #ccc;
 }
@@ -115,56 +109,98 @@ form button {
   background: #3b82f6;
   color: white;
   border: none;
+  font-weight: bold;
   cursor: pointer;
 }
 
 form button:hover {
-  background: #2563eb;
+  background: #1e40af;
 }
 
-/* ================= LOGIN ================= */
-
-.login-box {
-  max-width: 320px;
-  margin: 100px auto;
-  padding: 25px;
+/* ================================
+   TABELA DE LANÇAMENTOS
+================================ */
+table {
+  width: 100%;
+  border-collapse: collapse;
   background: white;
-  box-shadow: 0 10px 25px rgba(0,0,0,.15);
-  text-align: center;
-  border-radius: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.login-box h2 {
+thead {
+  background: #1e40af;
+  color: white;
+}
+
+th, td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+tr:hover {
+  background: #f3f4f6;
+}
+
+/* Valores entrada/saída */
+.valor-entrada {
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.valor-saida {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+/* ================================
+   LOGIN PAGE
+================================ */
+.login-container {
+  background: white;
+  width: 350px;
+  margin: 120px auto;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.login-container h2 {
+  text-align: center;
   margin-bottom: 20px;
 }
 
-.login-box input {
+.login-container input {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
+  padding: 12px;
+  margin-bottom: 15px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 14px;
 }
 
-.login-box button {
+.login-container button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   background: #3b82f6;
-  border: none;
   color: white;
-  font-size: 15px;
-  font-weight: bold;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
 }
 
-.login-box button:hover {
-  background: #2563eb;
+.login-container button:hover {
+  background: #1e40af;
 }
 
-#erro {
-  color: red;
-  margin-top: 10px;
-  font-size: 14px;
+/* ================================
+   RESPONSIVIDADE
+================================ */
+@media (max-width: 768px) {
+  .cards {
+    flex-direction: column;
+  }
 }
