@@ -4,29 +4,42 @@
   <meta charset="UTF-8">
   <title>Login</title>
 
-  <!-- ✅ Caminho correto do CSS -->
+  <!-- CSS no caminho certo -->
   <link rel="stylesheet" href="./style.css">
 
-  <!-- ✅ Carregamento seguro do JS -->
+  <!-- JavaScript carregado de forma segura -->
   <script src="./auth.js" defer></script>
 </head>
 <body>
   <div class="login-box">
-    <!-- ✅ Logo opcional -->
-    <img src="./logo.png" class="logo">
+
+    <!-- Logo (opcional) -->
+    <img src="./logo.png" alt="Logo" class="logo">
 
     <h2>Login</h2>
 
-    <!-- ✅ IDs corretos para o JS -->
-    <input id="usuario" placeholder="Usuário" autocomplete="username">
+    <!-- Campo Usuário -->
+    <input 
+      id="usuario" 
+      placeholder="Usuário" 
+      autocomplete="username"
+      required
+    >
 
-    <input id="senha" placeholder="Senha" type="password" autocomplete="current-password">
+    <!-- Campo Senha -->
+    <input 
+      id="senha" 
+      placeholder="Senha" 
+      type="password"
+      autocomplete="current-password"
+      required
+    >
 
-    <!-- ✅ Chamada direta da função -->
+    <!-- Botão que chama a função login() do auth.js -->
     <button onclick="login()">Entrar</button>
 
-    <!-- ✅ Local para mensagem de erro -->
-    <p id="erro"></p>
+    <!-- Mensagem de erro -->
+    <p id="erro" class="erro"></p>
   </div>
 </body>
 </html>
