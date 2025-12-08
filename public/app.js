@@ -77,10 +77,67 @@ document.addEventListener("DOMContentLoaded", () => {
     verificarLogin();
     carregarLancamentos();
 
-    document.getElementById("btnAdicionar")
-      ?.addEventListener("click", adicionarLancamento);
+    // ⬇⬇⬇ CORREÇÃO: OUVIR SUBMIT DO FORMULÁRIO ⬇⬇⬇
+    document.getElementById("formLancamento")
+      ?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        adicionarLancamento();
+      });
   }
 });
+
+// ==============================
+// TABELA E CÁLCULOS
+// ==============================
+function renderizarTabela(lista = []) {
+  const tbody = document.querySelector("#tabela tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  let totalVendas = 0;
+  let totalCompras = 0;
+
+  if (!Array.isArray(lista) || lista.length === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="4" style="text-align:center; padding:16px;">Nenhum lançamento</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+
+  lista.forEach(l => {
+    const tr = document.createElement("tr");
+
+    const tipo = String(l.tipo ?? "");
+    const descricao = String(l.descricao ?? "");
+    const valor = Number(l.valor ?? 0);
+    const data = l.data ?? "";
+
+    if (tipo === "entrada") totalVendas += valor;
+    if (tipo === "saida") totalCompras += valor;
+
+    tr.classList.add(tipo);
+
+    tr.innerHTML = `
+      <td>${escapeHtml(tipo)}</td>
+      <td>${escapeHtml(descricao)}</td>
+      <td>${formatCurrencyBR(valor)}</td>
+      <td>${formatDateISOtoBR(data)}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+
+  // Atualiza cards, se existirem
+  if (document.getElementById("totalVendas"))
+      document.getElementById("totalVendas").innerText = formatCurrencyBR(totalVendas);
+
+  if (document.getElementById("totalCompras"))
+      document.getElementById("totalCompras").innerText = formatCurrencyBR(totalCompras);
+
+  if (document.getElementById("totalCaixa"))
+      document.getElementById("totalCaixa").innerText = formatCurrencyBR(totalVendas - totalCompras);
+}
 
 // ==============================
 // FUNÇÕES AUXILIARES
