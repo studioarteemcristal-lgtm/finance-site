@@ -1,3 +1,4 @@
+// app.js (frontend)
 const API = window.location.origin;
 
 function getToken() {
@@ -13,14 +14,14 @@ function tratar401(resp) {
   return false;
 }
 
-async function carregarLancamentos(from = '', to = '') {
+async function carregarLancamentos(from='', to='') {
   const token = getToken();
   if (!token) { window.location.href = "login.html"; return; }
 
   let url = "/api/lancamentos";
   const params = [];
-  if (from) params.push(`from=${from}`);
-  if (to) params.push(`to=${to}`);
+  if (from) params.push(`from=${encodeURIComponent(from)}`);
+  if (to) params.push(`to=${encodeURIComponent(to)}`);
   if (params.length) url += "?" + params.join("&");
 
   const resp = await fetch(url, {
@@ -29,17 +30,16 @@ async function carregarLancamentos(from = '', to = '') {
 
   if (!resp.ok) {
     if (tratar401(resp)) return;
-    alert("Erro ao carregar lançamentos");
+    console.error("Erro ao carregar lançamentos");
     return;
   }
-
   const lista = await resp.json();
   renderizarTabela(lista);
   atualizarCardsECharts(lista);
 }
 
-function formatCurrencyBR(valor) {
-  return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+function formatCurrencyBR(value) {
+  return Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function escapeHtml(s) {
@@ -48,183 +48,191 @@ function escapeHtml(s) {
 
 function renderizarTabela(lista) {
   const tbody = document.querySelector("#tabela tbody");
-  tbody.innerHTML = "";
+  if (!tbody) return;
 
-  if (!lista.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum lançamento</td></tr>`;
+  tbody.innerHTML = "";
+  if (!Array.isArray(lista) || lista.length === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="5" style="text-align:center;padding:16px;">Nenhum lançamento</td>`;
+    tbody.appendChild(tr);
     return;
   }
 
   lista.forEach(item => {
     const tr = document.createElement("tr");
-
+    tr.classList.add((item.tipo||"").toLowerCase());
     tr.innerHTML = `
       <td>${escapeHtml(item.tipo)}</td>
       <td>${escapeHtml(item.descricao)}</td>
       <td>${formatCurrencyBR(item.valor)}</td>
       <td>${escapeHtml(item.data)}</td>
       <td>
-        <button class="btn-edit" data-id="${item.id}">Editar</button>
-        <button class="btn-delete" data-id="${item.id}">Excluir</button>
+        <button data-id="${item.id}" class="btn-edit">Editar</button>
+        <button data-id="${item.id}" class="btn-delete">Excluir</button>
       </td>
     `;
-
     tbody.appendChild(tr);
   });
 
-  document.querySelectorAll(".btn-delete").forEach(btn => {
-    btn.onclick = async () => {
-      const id = btn.dataset.id;
-      if (!confirm("Deseja excluir?")) return;
-
+  // listeners
+  document.querySelectorAll(".btn-delete").forEach(b => {
+    b.addEventListener("click", async (e) => {
+      const id = e.currentTarget.dataset.id;
+      if (!confirm("Confirmar exclusão?")) return;
+      const token = getToken();
       const resp = await fetch(`/api/lancamentos/${id}`, {
         method: "DELETE",
-        headers: { Authorization: "Bearer " + getToken() }
+        headers: { Authorization: "Bearer " + token }
       });
-
-      if (!resp.ok) { alert("Erro ao excluir"); return; }
+      if (!resp.ok) {
+        if (tratar401(resp)) return;
+        alert("Erro ao excluir");
+        return;
+      }
       carregarLancamentos();
-    };
+    });
   });
 
-  document.querySelectorAll(".btn-edit").forEach(btn => {
-    btn.onclick = async () => {
-      const id = btn.dataset.id;
-
+  document.querySelectorAll(".btn-edit").forEach(b => {
+    b.addEventListener("click", async (e) => {
+      const id = e.currentTarget.dataset.id;
+      const token = getToken();
       const resp = await fetch(`/api/lancamentos/${id}`, {
-        headers: { Authorization: "Bearer " + getToken() }
+        headers: { Authorization: "Bearer " + token }
       });
-
+      if (!resp.ok) { if (tratar401(resp)) return; alert("Erro ao buscar"); return; }
       const item = await resp.json();
-
       document.getElementById("editId").value = item.id;
       document.getElementById("tipo").value = item.tipo;
       document.getElementById("descricao").value = item.descricao;
       document.getElementById("valor").value = item.valor;
       document.getElementById("data").value = item.data;
-
       document.getElementById("btnCancelEdit").style.display = "inline-block";
       document.querySelector("#formLancamento button[type=submit]").textContent = "Salvar";
-    };
+    });
   });
 }
 
-document.getElementById("formLancamento").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
+async function adicionarOuAtualizar(event) {
+  event.preventDefault();
   const id = document.getElementById("editId").value;
   const tipo = document.getElementById("tipo").value;
-  const descricao = document.getElementById("descricao").value;
+  const descricao = document.getElementById("descricao").value.trim();
   const valor = parseFloat(document.getElementById("valor").value);
   const data = document.getElementById("data").value;
 
-  const payload = { tipo, descricao, valor, data };
   const token = getToken();
+  if (!token) { window.location.href = "login.html"; return; }
 
-  let resp;
+  const payload = { tipo, descricao, valor, data };
+
   if (id) {
-    resp = await fetch(`/api/lancamentos/${id}`, {
+    const resp = await fetch(`/api/lancamentos/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
       body: JSON.stringify(payload)
     });
+    if (!resp.ok) { if (tratar401(resp)) return; alert("Erro ao atualizar"); return; }
+    document.getElementById("editId").value = "";
+    document.getElementById("btnCancelEdit").style.display = "none";
+    document.querySelector("#formLancamento button[type=submit]").textContent = "Adicionar";
   } else {
-    resp = await fetch(`/api/lancamentos`, {
+    const resp = await fetch("/api/lancamentos", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
       body: JSON.stringify(payload)
     });
+    if (!resp.ok) { if (tratar401(resp)) return; alert("Erro ao salvar"); return; }
   }
 
-  if (!resp.ok) { alert("Erro ao salvar"); return; }
-
   document.getElementById("formLancamento").reset();
+  carregarLancamentos();
+}
+
+document.getElementById("btnCancelEdit")?.addEventListener("click", (e) => {
+  e.preventDefault();
   document.getElementById("editId").value = "";
+  document.getElementById("formLancamento").reset();
   document.getElementById("btnCancelEdit").style.display = "none";
   document.querySelector("#formLancamento button[type=submit]").textContent = "Adicionar";
-
-  carregarLancamentos();
 });
 
-document.getElementById("btnCancelEdit").onclick = () => {
-  document.getElementById("formLancamento").reset();
-  document.getElementById("editId").value = "";
-  document.getElementById("btnCancelEdit").style.display = "none";
-  document.querySelector("#formLancamento button[type=submit]").textContent = "Adicionar";
-};
-
-document.getElementById("btnFilter").onclick = () => {
-  carregarLancamentos(
-    document.getElementById("filterFrom").value,
-    document.getElementById("filterTo").value
-  );
-};
-
-document.getElementById("btnResetFilter").onclick = () => {
+document.getElementById("btnFilter")?.addEventListener("click", (e) => {
+  const from = document.getElementById("filterFrom").value;
+  const to = document.getElementById("filterTo").value;
+  carregarLancamentos(from, to);
+});
+document.getElementById("btnResetFilter")?.addEventListener("click", (e) => {
   document.getElementById("filterFrom").value = "";
   document.getElementById("filterTo").value = "";
   carregarLancamentos();
-};
+});
 
+// charts
 let pieChart = null;
 let lineChart = null;
 
 function atualizarCardsECharts(lista) {
-  let entradas = 0, saidas = 0;
+  let totalVendas = 0;
+  let totalCompras = 0;
   const byMonth = {};
 
   lista.forEach(l => {
-    const valor = Number(l.valor);
-    const tipo = l.tipo.toLowerCase();
+    const tipo = (l.tipo || "").toLowerCase();
+    const valor = Number(l.valor) || 0;
+    if (tipo === "entrada") totalVendas += valor;
+    else if (tipo === "saida") totalCompras += valor;
 
-    if (tipo === "entrada") entradas += valor;
-    else saidas += valor;
-
-    const mes = l.data.substring(0, 7);
-    byMonth[mes] = (byMonth[mes] || 0) + valor;
+    if (l.data) {
+      const m = l.data.slice(0,7);
+      byMonth[m] = (byMonth[m] || 0) + valor;
+    }
   });
 
-  document.getElementById("totalVendas").innerText = formatCurrencyBR(entradas);
-  document.getElementById("totalCompras").innerText = formatCurrencyBR(saidas);
-  document.getElementById("totalCaixa").innerText = formatCurrencyBR(entradas - saidas);
+  const totalCaixa = totalVendas - totalCompras;
+  document.getElementById("totalVendas")?.innerText = formatCurrencyBR(totalVendas);
+  document.getElementById("totalCompras")?.innerText = formatCurrencyBR(totalCompras);
+  document.getElementById("totalCaixa")?.innerText = formatCurrencyBR(totalCaixa);
 
   const pieCtx = document.getElementById("pieChart");
   if (pieCtx) {
-    if (pieChart) pieChart.destroy();
-    pieChart = new Chart(pieCtx, {
-      type: "pie",
-      data: {
-        labels: ["Entradas", "Saídas"],
-        datasets: [
-          { data: [entradas, saidas], backgroundColor: ["#3b82f6", "#ef4444"] }
-        ]
-      }
-    });
+    const data = [totalVendas, totalCompras];
+    if (pieChart) {
+      pieChart.data.datasets[0].data = data;
+      pieChart.update();
+    } else {
+      pieChart = new Chart(pieCtx.getContext("2d"), {
+        type: "pie",
+        data: { labels: ["Entradas","Saídas"], datasets: [{ data, backgroundColor: ["#3b82f6","#fb7185"] }] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
   }
 
   const lineCtx = document.getElementById("lineChart");
   if (lineCtx) {
-    const meses = Object.keys(byMonth).sort();
-    const valores = meses.map(m => byMonth[m]);
-
-    if (lineChart) lineChart.destroy();
-    lineChart = new Chart(lineCtx, {
-      type: "line",
-      data: {
-        labels: meses,
-        datasets: [{
-          label: "Movimentação (R$)",
-          data: valores,
-          borderColor: "#3b82f6",
-          fill: false
-        }]
-      }
-    });
+    const months = Object.keys(byMonth).sort();
+    const vals = months.map(m => byMonth[m]);
+    if (lineChart) {
+      lineChart.data.labels = months;
+      lineChart.data.datasets[0].data = vals;
+      lineChart.update();
+    } else {
+      lineChart = new Chart(lineCtx.getContext("2d"), {
+        type: "line",
+        data: { labels: months, datasets: [{ label: "Fluxo (R$)", data: vals, fill:false, borderColor:"#3b82f6", tension:0.2 }] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
   }
 }
 
+// inicialização
 document.addEventListener("DOMContentLoaded", () => {
-  const token = getToken();
-  if (!token) window.location.href = "login.html";
-  else carregarLancamentos();
+  if (window.location.pathname.endsWith("index.html") || window.location.pathname === "/") {
+    const token = getToken();
+    if (!token) { window.location.href = "login.html"; return; }
+    document.getElementById("formLancamento")?.addEventListener("submit", adicionarOuAtualizar);
+    carregarLancamentos();
+  }
 });
