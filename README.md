@@ -1,13 +1,12 @@
-# Finance Site - Node + SQLite
+# Finance Site
 
-## Instalação local
+Servidor Node + SQLite com frontend estático.
+
+## Start local
 1. `npm install`
-2. `npm run init-db` (opcional — cria DB e usuário padrão)
-3. `npm start`
-4. Acesse `http://localhost:3000`
+2. `npm start`
+3. Acesse `http://localhost:3000`
 
-Usuário padrão criado pelo init-db: `leilaine` / `Bn@75406320`
-
-## Deploy
-- No Render: crie um Web Service (Node). Start command: `npm start`.
-- Defina `PORT` e `JWT_SECRET` em Environment.
+Usuário padrão:
+- usuário: `leilaine`
+- senha: `Bn@75406320`
