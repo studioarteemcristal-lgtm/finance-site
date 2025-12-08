@@ -100,4 +100,76 @@ function verificarToken(req, res, next) {
 app.post("/api/login", (req, res) => {
   const { usuario, senha } = req.body;
   if (!usuario || !senha) {
-    re
+// ==============================
+// LOGIN COM JWT
+// ==============================
+app.post("/api/login", (req, res) => {
+  const { usuario, senha } = req.body;
+
+  if (!usuario || !senha) {
+    return res.status(400).json({ erro: "Usuário e senha obrigatórios" });
+  }
+
+  db.get("SELECT * FROM users WHERE usuario = ?", [usuario], (err, user) => {
+    if (err) return res.status(500).json({ erro: "Erro no servidor" });
+    if (!user) return res.status(401).json({ erro: "Usuário não encontrado" });
+
+    const senhaCorreta = bcrypt.compareSync(senha, user.senha);
+    if (!senhaCorreta)
+      return res.status(401).json({ erro: "Senha incorreta" });
+
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "8h" });
+
+    res.json({ token });
+  });
+});
+
+// ==============================
+// ROTAS PROTEGIDAS - LANÇAMENTOS
+// ==============================
+
+// Criar lançamento
+app.post("/api/lancamentos", verificarToken, (req, res) => {
+  const { tipo, descricao, valor, data } = req.body;
+
+  db.run(
+    "INSERT INTO lancamentos (tipo, descricao, valor, data) VALUES (?, ?, ?, ?)",
+    [tipo, descricao, valor, data],
+    function (err) {
+      if (err) return res.status(500).json({ erro: "Erro ao inserir" });
+      res.json({ id: this.lastID });
+    }
+  );
+});
+
+// Listar lançamentos
+app.get("/api/lancamentos", verificarToken, (req, res) => {
+  db.all("SELECT * FROM lancamentos ORDER BY date(data) DESC", [], (err, rows) => {
+    if (err) return res.status(500).json({ erro: "Erro ao buscar" });
+    res.json(rows);
+  });
+});
+
+// Apagar lançamento
+app.delete("/api/lancamentos/:id", verificarToken, (req, res) => {
+  const id = req.params.id;
+
+  db.run("DELETE FROM lancamentos WHERE id = ?", [id], function (err) {
+    if (err) return res.status(500).json({ erro: "Erro ao apagar" });
+
+    if (this.changes === 0) {
+      return res.status(404).json({ erro: "Registro não encontrado" });
+    }
+
+    res.json({ sucesso: true });
+  });
+});
+
+// ==============================
+// INICIAR SERVIDOR
+// ==============================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+});
+
