@@ -1,41 +1,51 @@
-/* style.css - layout simples e responsivo */
+/* style.css */
 body {
   font-family: Arial, sans-serif;
   background: #f2f4f8;
   margin: 0;
-  padding: 0;
+  color: #111;
 }
+
+/* header */
 .header {
   display:flex;
   align-items:center;
-  gap:16px;
-  background:white;
-  padding:12px 20px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  justify-content:space-between;
+  background:#fff;
+  padding:12px 18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
 }
-.header .logo { height:48px; }
-.header h1 { margin:0; color:#0d47a1; flex:1; text-align:center; font-size:20px; }
-.header button { background:#ef5350; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
-.content { padding:20px; max-width:1100px; margin:0 auto; }
-.cards { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
-.card { background:white; padding:14px; width:180px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,.06); border-left:4px solid #3b82f6; text-align:center; }
-.card h3 { margin:0; font-size:14px; }
-.card p { margin:8px 0 0; font-weight:bold; font-size:18px; }
-.charts { display:flex; gap:20px; flex-wrap:wrap; }
-.chart-card { flex:1; min-width:280px; max-width:580px; background:white; padding:12px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,.06); height:320px; }
-.filters { display:flex; gap:8px; align-items:center; margin:12px 0 18px; }
-#formLancamento { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:10px 0 0; }
-#formLancamento input, #formLancamento select, #formLancamento button { padding:8px; border-radius:6px; border:1px solid #ccc; }
-#formLancamento button { background:#1e40af; color:white; border:none; cursor:pointer; padding:8px 12px; }
-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; margin-top:12px; box-shadow:0 4px 10px rgba(0,0,0,.04); }
-thead { background:#123a8a; color:white; }
+.logo { height:48px; }
+.header h1 { margin:0; color:#0d47a1; font-size:18px; }
+
+/* container */
+.container { max-width:1100px; margin:18px auto; padding:0 16px; }
+
+/* cards */
+.cards { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:18px; }
+.card { background:white; padding:16px; width:200px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,.06); text-align:center; border-left:4px solid #3b82f6; }
+.card h3 { margin:0; font-size:14px; color:#333; }
+.card p { margin-top:8px; font-size:18px; font-weight:700; }
+
+/* charts area handled inline in index */
+
+/* form / table */
+#formLancamento select, #formLancamento input, #formLancamento button {
+  padding:8px; border-radius:6px; border:1px solid #ccc; font-size:14px;
+}
+#formLancamento button { background:#1e40af; color:#fff; border:none; cursor:pointer; padding:8px 14px; }
+table { width:100%; border-collapse:collapse; margin-top:16px; background:white; border-radius:8px; overflow:hidden; }
+thead { background:#1e3a8a; color:white; }
 td, th { padding:10px; border-bottom:1px solid #eee; text-align:left; }
-.login-box { max-width:320px; margin:80px auto; background:white; padding:20px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,.12); text-align:center; }
+
+/* login */
+.login-main { display:flex; justify-content:center; align-items:flex-start; padding:24px 0; }
+.login-box { width:320px; background:white; padding:18px; border-radius:10px; box-shadow:0 8px 20px rgba(0,0,0,.08); text-align:center; }
 .login-box input { width:100%; padding:10px; margin-bottom:10px; border-radius:6px; border:1px solid #ccc; }
-.login-box button { width:100%; padding:10px; border-radius:6px; border:none; background:#1e40af; color:white; cursor:pointer; }
-#erro { color:crimson; margin-top:8px; }
-@media (max-width: 768px) {
-  .charts { flex-direction:column; }
-  .chart-card { width:100%; }
-  .cards { justify-content:space-around; }
+.login-box button { width:100%; padding:10px; background:#1e40af; color:white; border:none; border-radius:6px; cursor:pointer; }
+
+/* small screens */
+@media (max-width: 760px) {
+  .cards { flex-direction:column; align-items:center; }
+  .chart-card { height:300px; }
 }
