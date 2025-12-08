@@ -1,7 +1,3 @@
-// ==============================
-// server.js - Finance Site
-// ==============================
-
 import express from "express";
 import sqlite3 from "sqlite3";
 import path from "path";
@@ -28,16 +24,13 @@ app.get("/", (req, res) => {
 });
 
 // ==============================
-// PASTA DO BANCO
+// BANCO DE DADOS
 // ==============================
 const pastaDB = path.join(__dirname, "data");
 if (!fs.existsSync(pastaDB)) {
   fs.mkdirSync(pastaDB, { recursive: true });
 }
 
-// ==============================
-// ABRIR BANCO SQLITE
-// ==============================
 const dbPath = path.join(pastaDB, "database.sqlite");
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error("❌ Erro ao abrir banco:", err);
@@ -45,7 +38,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 });
 
 // ==============================
-// CRIAR TABELAS
+// CRIAÇÃO DAS TABELAS
 // ==============================
 db.serialize(() => {
   db.run(`
@@ -75,18 +68,16 @@ db.serialize(() => {
 });
 
 // ==============================
-// SEGREDO JWT
+// JWT
 // ==============================
 const JWT_SECRET = process.env.JWT_SECRET || "CHAVE_SUPER_SECRETA_123";
 
-// ==============================
-// MIDDLEWARE JWT
-// ==============================
 function verificarToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ erro: "Token ausente" });
 
   const token = authHeader.split(" ")[1];
+
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) return res.status(401).json({ erro: "Token inválido" });
     req.userId = decoded.id;
@@ -95,81 +86,58 @@ function verificarToken(req, res, next) {
 }
 
 // ==============================
-// LOGIN COM JWT
-// ==============================
-app.post("/api/login", (req, res) => {
-  const { usuario, senha } = req.body;
-  if (!usuario || !senha) {
-// ==============================
-// LOGIN COM JWT
+// LOGIN
 // ==============================
 app.post("/api/login", (req, res) => {
   const { usuario, senha } = req.body;
 
   if (!usuario || !senha) {
-    return res.status(400).json({ erro: "Usuário e senha obrigatórios" });
+    return res.status(400).json({ erro: "Dados incompletos" });
   }
 
-  db.get("SELECT * FROM users WHERE usuario = ?", [usuario], (err, user) => {
-    if (err) return res.status(500).json({ erro: "Erro no servidor" });
-    if (!user) return res.status(401).json({ erro: "Usuário não encontrado" });
+  db.get(
+    "SELECT * FROM users WHERE usuario = ?",
+    [usuario],
+    (err, user) => {
+      if (err) return res.status(500).json({ erro: "Erro no servidor" });
+      if (!user) return res.status(401).json({ erro: "Usuário não encontrado" });
 
-    const senhaCorreta = bcrypt.compareSync(senha, user.senha);
-    if (!senhaCorreta)
-      return res.status(401).json({ erro: "Senha incorreta" });
+      const senhaOK = bcrypt.compareSync(senha, user.senha);
+      if (!senhaOK) return res.status(401).json({ erro: "Senha incorreta" });
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "8h" });
+      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "2h" });
 
-    res.json({ token });
-  });
-});
-
-// ==============================
-// ROTAS PROTEGIDAS - LANÇAMENTOS
-// ==============================
-
-// Criar lançamento
-app.post("/api/lancamentos", verificarToken, (req, res) => {
-  const { tipo, descricao, valor, data } = req.body;
-
-  db.run(
-    "INSERT INTO lancamentos (tipo, descricao, valor, data) VALUES (?, ?, ?, ?)",
-    [tipo, descricao, valor, data],
-    function (err) {
-      if (err) return res.status(500).json({ erro: "Erro ao inserir" });
-      res.json({ id: this.lastID });
+      res.json({ token });
     }
   );
 });
 
-// Listar lançamentos
+// ==============================
+// CRUD DE LANÇAMENTOS
+// ==============================
 app.get("/api/lancamentos", verificarToken, (req, res) => {
-  db.all("SELECT * FROM lancamentos ORDER BY date(data) DESC", [], (err, rows) => {
+  db.all("SELECT * FROM lancamentos ORDER BY data DESC", [], (err, rows) => {
     if (err) return res.status(500).json({ erro: "Erro ao buscar" });
     res.json(rows);
   });
 });
 
-// Apagar lançamento
-app.delete("/api/lancamentos/:id", verificarToken, (req, res) => {
-  const id = req.params.id;
+app.post("/api/lancamentos", verificarToken, (req, res) => {
+  const { tipo, descricao, valor, data } = req.body;
 
-  db.run("DELETE FROM lancamentos WHERE id = ?", [id], function (err) {
-    if (err) return res.status(500).json({ erro: "Erro ao apagar" });
-
-    if (this.changes === 0) {
-      return res.status(404).json({ erro: "Registro não encontrado" });
+  db.run(
+    `INSERT INTO lancamentos (tipo, descricao, valor, data)
+     VALUES (?, ?, ?, ?)`,
+    [tipo, descricao, valor, data],
+    function (err) {
+      if (err) return res.status(500).json({ erro: "Erro ao salvar" });
+      res.json({ id: this.lastID });
     }
-
-    res.json({ sucesso: true });
-  });
+  );
 });
 
 // ==============================
-// INICIAR SERVIDOR
+// RENDER PORT (OU LOCALHOST)
 // ==============================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-});
-
+app.listen(PORT, () => console.log("🚀 Servidor rodando na porta " + PORT));
