@@ -1,11 +1,19 @@
+// script para inicializar DB manualmente (opcional)
 import sqlite3 from "sqlite3";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
 
-const db = new sqlite3.Database("./data/database.sqlite");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// ================================
-// ✅ CRIAR TABELAS
-// ================================
+const pastaDB = path.join(__dirname, "data");
+if (!fs.existsSync(pastaDB)) fs.mkdirSync(pastaDB, { recursive: true });
+
+const dbPath = path.join(pastaDB, "database.sqlite");
+const db = new sqlite3.Database(dbPath);
+
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -25,15 +33,12 @@ db.serialize(() => {
     )
   `);
 
-  // ================================
-  // ✅ CRIAR USUÁRIO ADMIN
-  // ================================
-  const senhaHash = bcrypt.hashSync("admin123", 10);
-
-  db.run(
-    "INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)",
-    ["admin", senhaHash]
-  );
-
-  console.log("✔ Banco de dados inicializado corretamente.");
+  // cria usuário padrão (senha: Bn@75406320)
+  const senhaPadrao = bcrypt.hashSync("Bn@75406320", 10);
+  db.run("INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)", ["leilaine", senhaPadrao], (err) => {
+    if (err) console.error("Erro inserir user:", err);
+    else console.log("Usuário inicial criado (ou já existia): leilaine");
+  });
 });
+
+db.close();
