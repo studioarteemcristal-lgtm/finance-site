@@ -7,43 +7,38 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const pastaDB = path.join(__dirname, "data");
+// Garante a pasta /data no Render
+const pastaDB = path.join(process.cwd(), "data");
 if (!fs.existsSync(pastaDB)) fs.mkdirSync(pastaDB, { recursive: true });
 
 const dbPath = path.join(pastaDB, "database.sqlite");
 const db = new sqlite3.Database(dbPath);
 
+// Garante tabela
+db.run(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario TEXT UNIQUE NOT NULL,
+    senha TEXT NOT NULL
+  )
+`);
+
 const USERNAME = "leilaine";
 const PASSWORD = "Bn@75406320";
 
-db.serialize(() => {
-  db.get(
-    "SELECT * FROM users WHERE usuario = ?",
-    [USERNAME],
-    async (err, row) => {
-      if (err) {
-        console.error("Erro ao verificar usuário:", err);
-        return;
-      }
+db.get("SELECT * FROM users WHERE usuario = ?", [USERNAME], async (err, row) => {
+  if (err) return console.log("Erro DB:", err);
 
-      if (row) {
-        console.log("Usuário já existe:", USERNAME);
-        return;
-      }
+  if (row) return console.log("Usuário já existe:", USERNAME);
 
-      const hash = await bcrypt.hash(PASSWORD, 10);
+  const hash = await bcrypt.hash(PASSWORD, 10);
 
-      db.run(
-        "INSERT INTO users (usuario, senha) VALUES (?, ?)",
-        [USERNAME, hash],
-        (err) => {
-          if (err) {
-            console.error("Erro ao criar usuário:", err);
-          } else {
-            console.log("Usuário criado com sucesso:", USERNAME);
-          }
-        }
-      );
+  db.run(
+    "INSERT INTO users (usuario, senha) VALUES (?, ?)",
+    [USERNAME, hash],
+    (err) => {
+      if (err) console.log("Erro criando usuário:", err);
+      else console.log("Usuário criado com sucesso:", USERNAME);
     }
   );
 });
