@@ -1,3 +1,7 @@
+// ==============================
+// server.js - Finance Site
+// ==============================
+
 import express from "express";
 import sqlite3 from "sqlite3";
 import path from "path";
@@ -24,10 +28,9 @@ app.get("/", (req, res) => {
 });
 
 // ==============================
-// GARANTIR PASTA DO BANCO
+// PASTA DO BANCO
 // ==============================
 const pastaDB = path.join(__dirname, "data");
-
 if (!fs.existsSync(pastaDB)) {
   fs.mkdirSync(pastaDB, { recursive: true });
 }
@@ -35,9 +38,10 @@ if (!fs.existsSync(pastaDB)) {
 // ==============================
 // ABRIR BANCO SQLITE
 // ==============================
-const db = new sqlite3.Database(path.join(pastaDB, "database.sqlite"), err => {
+const dbPath = path.join(pastaDB, "database.sqlite");
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error("❌ Erro ao abrir banco:", err);
-  else console.log("✅ Banco conectado!");
+  else console.log("✅ Banco conectado em", dbPath);
 });
 
 // ==============================
@@ -62,29 +66,27 @@ db.serialize(() => {
     )
   `);
 
-  const senhaCriptografada = bcrypt.hashSync("Bn@75406320", 10);
+  const senhaPadrao = bcrypt.hashSync("Bn@75406320", 10);
 
   db.run(
     "INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)",
-    ["leilaine", senhaCriptografada]
+    ["leilaine", senhaPadrao]
   );
 });
 
 // ==============================
 // SEGREDO JWT
 // ==============================
-const JWT_SECRET = "CHAVE_SUPER_SECRETA_123"; // pode trocar depois
+const JWT_SECRET = process.env.JWT_SECRET || "CHAVE_SUPER_SECRETA_123";
 
 // ==============================
 // MIDDLEWARE JWT
 // ==============================
 function verificarToken(req, res, next) {
   const authHeader = req.headers.authorization;
-
   if (!authHeader) return res.status(401).json({ erro: "Token ausente" });
 
   const token = authHeader.split(" ")[1];
-
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) return res.status(401).json({ erro: "Token inválido" });
     req.userId = decoded.id;
@@ -93,67 +95,9 @@ function verificarToken(req, res, next) {
 }
 
 // ==============================
-// LOGIN COM JWT ✅
+// LOGIN COM JWT
 // ==============================
 app.post("/api/login", (req, res) => {
   const { usuario, senha } = req.body;
-
   if (!usuario || !senha) {
-    return res.status(400).json({ erro: "Usuário ou senha ausentes" });
-  }
-
-  db.get(
-    "SELECT * FROM users WHERE usuario = ?",
-    [usuario],
-    (err, user) => {
-      if (err) return res.status(500).json({ erro: "Erro no banco" });
-      if (!user) return res.status(401).json({ erro: "Usuário não encontrado" });
-
-      const senhaOK = bcrypt.compareSync(senha, user.senha);
-      if (!senhaOK) return res.status(401).json({ erro: "Senha incorreta" });
-
-      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "8h" });
-
-      res.json({ token });
-    }
-  );
-});
-
-// ==============================
-// LISTAR LANÇAMENTOS ✅
-// ==============================
-app.get("/api/lancamentos", verificarToken, (req, res) => {
-  db.all("SELECT * FROM lancamentos ORDER BY id DESC", (err, rows) => {
-    if (err) return res.status(500).json({ erro: "Erro ao buscar lançamentos" });
-    res.json(rows);
-  });
-});
-
-// ==============================
-// CRIAR LANÇAMENTO ✅
-// ==============================
-app.post("/api/lancamentos", verificarToken, (req, res) => {
-  const { tipo, descricao, valor, data } = req.body;
-
-  if (!tipo || !descricao || !valor || !data) {
-    return res.status(400).json({ erro: "Dados incompletos" });
-  }
-
-  db.run(
-    "INSERT INTO lancamentos (tipo, descricao, valor, data) VALUES (?, ?, ?, ?)",
-    [tipo, descricao, valor, data],
-    err => {
-      if (err) return res.status(500).json({ erro: "Erro ao salvar lançamento" });
-      res.json({ sucesso: true });
-    }
-  );
-});
-
-// ==============================
-// INICIAR SERVIDOR
-// ==============================
-const PORT = process.env.PORT || 10000;
-
-app.listen(PORT, () => {
-  console.log("✅ Servidor JWT rodando na porta", PORT);
-});
+    re
