@@ -1,75 +1,83 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard Financeiro</title>
-    
-    <!-- Caminho correto! -->
-    <link rel="stylesheet" href="/style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Painel Financeiro</title>
 
-    <!-- Fontes -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/auth.js" defer></script>
+  <script src="/app.js" defer></script>
 
-    <!-- Caminhos JS corrigidos -->
-    <script src="/auth.js" defer></script>
-    <script src="/app.js" defer></script>
+  <style>
+    /* Estilos internos mínimos para garantir que charts tenham espaço */
+    .chart-card { height: 320px; }
+    .chart-card canvas { width:100% !important; height:100% !important; }
+  </style>
 </head>
-
 <body>
-    <header>
-        <h1>Dashboard Financeiro</h1>
-        <button id="logoutBtn" class="logout">Sair</button>
-    </header>
+  <header class="header">
+    <img src="/logo.png" class="logo" alt="Logo" />
+    <h1>Painel Financeiro</h1>
+    <button id="logoutBtn">Sair</button>
+  </header>
 
-    <main>
-        <section class="balance-section">
-            <div class="card total">
-                <h3>Total</h3>
-                <p id="totalAmount">R$ 0,00</p>
-            </div>
-            <div class="card entradas">
-                <h3>Entradas</h3>
-                <p id="incomeAmount">R$ 0,00</p>
-            </div>
-            <div class="card saidas">
-                <h3>Saídas</h3>
-                <p id="expenseAmount">R$ 0,00</p>
-            </div>
-        </section>
+  <main class="content container">
+    <div class="cards">
+      <div class="card entrada"><h3>Entradas</h3><p id="totalVendas">R$ 0,00</p></div>
+      <div class="card saida"><h3>Saídas</h3><p id="totalCompras">R$ 0,00</p></div>
+      <div class="card caixa"><h3>Caixa</h3><p id="totalCaixa">R$ 0,00</p></div>
+    </div>
 
-        <section class="form-section">
-            <h2>Adicionar Transação</h2>
-            <form id="transactionForm">
-                <input type="text" id="description" placeholder="Descrição" required />
-                <input type="number" id="amount" placeholder="Valor (use negativo para saída)" required />
-                <button type="submit">Adicionar</button>
-            </form>
-        </section>
+    <div class="charts">
+      <div class="chart-card">
+        <h4>Entradas x Saídas</h4>
+        <canvas id="pieChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h4>Movimentação (mês)</h4>
+        <canvas id="lineChart"></canvas>
+      </div>
+    </div>
 
-        <section class="list-section">
-            <h2>Histórico</h2>
-            <ul id="transactionList"></ul>
-        </section>
+    <h2>Lançamentos</h2>
 
-        <!-- GRÁFICOS -->
-        <section class="charts">
-            <div class="chart-card">
-                <h3>Despesas por Categoria</h3>
-                <canvas id="expenseChart"></canvas>
-            </div>
+    <div class="filters">
+      <label>De <input type="date" id="filterFrom"></label>
+      <label>Até <input type="date" id="filterTo"></label>
+      <button id="btnFilter">Aplicar filtro</button>
+      <button id="btnResetFilter">Limpar filtro</button>
+    </div>
 
-            <div class="chart-card">
-                <h3>Entradas vs Saídas</h3>
-                <canvas id="flowChart"></canvas>
-            </div>
-        </section>
-    </main>
+    <form id="formLancamento">
+      <input type="hidden" id="editId" value="">
+      <select id="tipo" required>
+        <option value="entrada">Entrada</option>
+        <option value="saida">Saída</option>
+      </select>
+      <input id="descricao" placeholder="Descrição" required />
+      <input id="valor" type="number" step="0.01" placeholder="Valor" required />
+      <input id="data" type="date" required />
+      <button type="submit">Adicionar</button>
+      <button type="button" id="btnCancelEdit" style="display:none;">Cancelar</button>
+    </form>
 
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>Tipo</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <script>
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    });
+  </script>
 </body>
 </html>
