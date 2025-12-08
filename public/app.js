@@ -58,11 +58,15 @@ async function adicionarLancamento() {
     });
 
     if (!resp.ok) {
-      alert("Erro ao salvar");
+      const erro = await resp.json();
+      alert("Erro ao salvar: " + erro.erro);
       return;
     }
 
     await carregarLancamentos();
+
+    // 🔥 LIMPA OS CAMPOS APÓS SALVAR
+    document.getElementById("formLancamento").reset();
 
   } catch (e) {
     alert("Erro ao conectar ao servidor");
@@ -77,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
     verificarLogin();
     carregarLancamentos();
 
-    // ⬇⬇⬇ CORREÇÃO: OUVIR SUBMIT DO FORMULÁRIO ⬇⬇⬇
     document.getElementById("formLancamento")
       ?.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -113,10 +116,15 @@ function renderizarTabela(lista = []) {
     const valor = Number(l.valor ?? 0);
     const data = l.data ?? "";
 
-    if (tipo === "entrada") totalVendas += valor;
-    if (tipo === "saida") totalCompras += valor;
+    // 🔥 Corrige acento e diferenciação
+    const tipoNormalizado = tipo.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    tr.classList.add(tipo);
+    if (tipoNormalizado === "entrada") totalVendas += valor;
+    if (tipoNormalizado === "saida") totalCompras += valor;
+
+    // Classe sem acento
+    tr.classList.add(tipoNormalizado);
 
     tr.innerHTML = `
       <td>${escapeHtml(tipo)}</td>
@@ -128,15 +136,9 @@ function renderizarTabela(lista = []) {
     tbody.appendChild(tr);
   });
 
-  // Atualiza cards, se existirem
-  if (document.getElementById("totalVendas"))
-      document.getElementById("totalVendas").innerText = formatCurrencyBR(totalVendas);
-
-  if (document.getElementById("totalCompras"))
-      document.getElementById("totalCompras").innerText = formatCurrencyBR(totalCompras);
-
-  if (document.getElementById("totalCaixa"))
-      document.getElementById("totalCaixa").innerText = formatCurrencyBR(totalVendas - totalCompras);
+  document.getElementById("totalVendas").innerText = formatCurrencyBR(totalVendas);
+  document.getElementById("totalCompras").innerText = formatCurrencyBR(totalCompras);
+  document.getElementById("totalCaixa").innerText = formatCurrencyBR(totalVendas - totalCompras);
 }
 
 // ==============================
