@@ -14,22 +14,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ==============================
-// SERVIR ARQUIVOS ESTÁTICOS
-// ==============================
+// servir estáticos
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// ==============================
-// BANCO DE DADOS
-// ==============================
+// banco
 const pastaDB = path.join(__dirname, "data");
-if (!fs.existsSync(pastaDB)) {
-  fs.mkdirSync(pastaDB, { recursive: true });
-}
+if (!fs.existsSync(pastaDB)) fs.mkdirSync(pastaDB, { recursive: true });
 
 const dbPath = path.join(pastaDB, "database.sqlite");
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -37,9 +31,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
   else console.log("✅ Banco conectado em", dbPath);
 });
 
-// ==============================
-// CRIAÇÃO DAS TABELAS
-// ==============================
+// criar tabelas
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -60,24 +52,15 @@ db.serialize(() => {
   `);
 
   const senhaPadrao = bcrypt.hashSync("Bn@75406320", 10);
-
-  db.run(
-    "INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)",
-    ["leilaine", senhaPadrao]
-  );
+  db.run("INSERT OR IGNORE INTO users (usuario, senha) VALUES (?, ?)", ["leilaine", senhaPadrao]);
 });
 
-// ==============================
-// JWT
-// ==============================
 const JWT_SECRET = process.env.JWT_SECRET || "CHAVE_SUPER_SECRETA_123";
 
 function verificarToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ erro: "Token ausente" });
-
   const token = authHeader.split(" ")[1];
-
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) return res.status(401).json({ erro: "Token inválido" });
     req.userId = decoded.id;
@@ -85,49 +68,62 @@ function verificarToken(req, res, next) {
   });
 }
 
-// ==============================
-// LOGIN
-// ==============================
+// login
 app.post("/api/login", (req, res) => {
   const { usuario, senha } = req.body;
+  if (!usuario || !senha) return res.status(400).json({ erro: "Dados incompletos" });
 
-  if (!usuario || !senha) {
-    return res.status(400).json({ erro: "Dados incompletos" });
-  }
-
-  db.get(
-    "SELECT * FROM users WHERE usuario = ?",
-    [usuario],
-    (err, user) => {
-      if (err) return res.status(500).json({ erro: "Erro no servidor" });
-      if (!user) return res.status(401).json({ erro: "Usuário não encontrado" });
-
-      const senhaOK = bcrypt.compareSync(senha, user.senha);
-      if (!senhaOK) return res.status(401).json({ erro: "Senha incorreta" });
-
-      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "2h" });
-
-      res.json({ token });
-    }
-  );
+  db.get("SELECT * FROM users WHERE usuario = ?", [usuario], (err, user) => {
+    if (err) return res.status(500).json({ erro: "Erro no servidor" });
+    if (!user) return res.status(401).json({ erro: "Usuário não encontrado" });
+    const senhaOK = bcrypt.compareSync(senha, user.senha);
+    if (!senhaOK) return res.status(401).json({ erro: "Senha incorreta" });
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "2h" });
+    res.json({ token });
+  });
 });
 
-// ==============================
-// CRUD DE LANÇAMENTOS
-// ==============================
+// GET lancamentos (com filtro opcional por data: ?from=YYYY-MM-DD&to=YYYY-MM-DD)
 app.get("/api/lancamentos", verificarToken, (req, res) => {
-  db.all("SELECT * FROM lancamentos ORDER BY data DESC", [], (err, rows) => {
+  const { from, to } = req.query;
+
+  let sql = "SELECT * FROM lancamentos";
+  const params = [];
+
+  if (from && to) {
+    sql += " WHERE date(data) BETWEEN date(?) AND date(?)";
+    params.push(from, to);
+  } else if (from) {
+    sql += " WHERE date(data) >= date(?)";
+    params.push(from);
+  } else if (to) {
+    sql += " WHERE date(data) <= date(?)";
+    params.push(to);
+  }
+
+  sql += " ORDER BY data DESC";
+
+  db.all(sql, params, (err, rows) => {
     if (err) return res.status(500).json({ erro: "Erro ao buscar" });
     res.json(rows);
   });
 });
 
+// GET por id (opcional, útil)
+app.get("/api/lancamentos/:id", verificarToken, (req, res) => {
+  const id = req.params.id;
+  db.get("SELECT * FROM lancamentos WHERE id = ?", [id], (err, row) => {
+    if (err) return res.status(500).json({ erro: "Erro ao buscar" });
+    if (!row) return res.status(404).json({ erro: "Lançamento não encontrado" });
+    res.json(row);
+  });
+});
+
+// CREATE
 app.post("/api/lancamentos", verificarToken, (req, res) => {
   const { tipo, descricao, valor, data } = req.body;
-
   db.run(
-    `INSERT INTO lancamentos (tipo, descricao, valor, data)
-     VALUES (?, ?, ?, ?)`,
+    `INSERT INTO lancamentos (tipo, descricao, valor, data) VALUES (?, ?, ?, ?)`,
     [tipo, descricao, valor, data],
     function (err) {
       if (err) return res.status(500).json({ erro: "Erro ao salvar" });
@@ -136,8 +132,30 @@ app.post("/api/lancamentos", verificarToken, (req, res) => {
   );
 });
 
-// ==============================
-// RENDER PORT (OU LOCALHOST)
-// ==============================
+// UPDATE
+app.put("/api/lancamentos/:id", verificarToken, (req, res) => {
+  const id = req.params.id;
+  const { tipo, descricao, valor, data } = req.body;
+  db.run(
+    `UPDATE lancamentos SET tipo = ?, descricao = ?, valor = ?, data = ? WHERE id = ?`,
+    [tipo, descricao, valor, data, id],
+    function (err) {
+      if (err) return res.status(500).json({ erro: "Erro ao atualizar" });
+      if (this.changes === 0) return res.status(404).json({ erro: "Lançamento não encontrado" });
+      res.json({ ok: true });
+    }
+  );
+});
+
+// DELETE
+app.delete("/api/lancamentos/:id", verificarToken, (req, res) => {
+  const id = req.params.id;
+  db.run("DELETE FROM lancamentos WHERE id = ?", [id], function (err) {
+    if (err) return res.status(500).json({ erro: "Erro ao excluir" });
+    if (this.changes === 0) return res.status(404).json({ erro: "Lançamento não encontrado" });
+    res.json({ ok: true });
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("🚀 Servidor rodando na porta " + PORT));
