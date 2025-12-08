@@ -1,39 +1,41 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel Financeiro</title>
 
-  <!-- ✅ CSS com caminho ABSOLUTO -->
-  <link rel="stylesheet" href="/style.css">
+  <!-- CSS (caminho absoluto) -->
+  <link rel="stylesheet" href="/style.css" />
 
-  <!-- ✅ JS com caminho ABSOLUTO -->
+  <!-- Scripts -->
   <script src="/auth.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
-  <header>
-    <!-- ✅ Imagem com caminho ABSOLUTO -->
-    <img src="/logo.png" class="logo">
+  <header class="header">
+    <img src="/logo.png" class="logo" alt="Logo" />
     <h1>Painel Financeiro</h1>
   </header>
 
-  <div class="content">
+  <main class="content">
     <h2>Lançamentos</h2>
 
+    <!-- Formulário de lançamentos -->
     <form id="formLancamento">
-      <select id="tipo">
+      <select id="tipo" required>
         <option value="entrada">Entrada</option>
         <option value="saida">Saída</option>
       </select>
 
-      <input id="descricao" placeholder="Descrição" required>
-      <input id="valor" type="number" step="0.01" placeholder="Valor" required>
-      <input id="data" type="date" required>
+      <input id="descricao" placeholder="Descrição" required />
+      <input id="valor" type="number" step="0.01" placeholder="Valor" required />
+      <input id="data" type="date" required />
 
       <button type="submit">Adicionar</button>
     </form>
 
+    <!-- Tabela de lançamentos -->
     <table id="tabela">
       <thead>
         <tr>
@@ -45,6 +47,6 @@
       </thead>
       <tbody></tbody>
     </table>
-  </div>
+  </main>
 </body>
 </html>
