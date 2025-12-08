@@ -1,29 +1,44 @@
-// uso: node init-user.js nomeUsuario senha
-import sqlite3 from "sqlite3";
-import path from "path";
-import { fileURLToPath } from "url";
-import bcrypt from "bcryptjs";
-import fs from "fs";
+// init-user.js
+const sqlite3 = require("sqlite3").verbose();
+const bcrypt = require("bcryptjs");
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const db = new sqlite3.Database("./data/database.sqlite");
 
-const args = process.argv.slice(2);
-if (args.length < 2) {
-  console.log("Uso: node init-user.js <usuario> <senha>");
-  process.exit(1);
-}
-const [usuario, senha] = args;
+const USERNAME = "leilaine";
+const PASSWORD = "Bn@75406320";
 
-const pastaDB = path.join(__dirname, "data");
-if (!fs.existsSync(pastaDB)) fs.mkdirSync(pastaDB, { recursive: true });
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario TEXT UNIQUE NOT NULL,
+      senha TEXT NOT NULL
+    )
+  `);
 
-const dbPath = path.join(pastaDB, "database.sqlite");
-const db = new sqlite3.Database(dbPath);
+  // Verifica se já existe
+  db.get("SELECT * FROM usuarios WHERE usuario = ?", [USERNAME], async (err, row) => {
+    if (err) {
+      console.error("Erro ao verificar usuário:", err);
+      return;
+    }
 
-const senhaHash = bcrypt.hashSync(senha, 10);
-db.run("INSERT OR REPLACE INTO users (usuario, senha) VALUES (?, ?)", [usuario, senhaHash], (err) => {
-  if (err) console.error("Erro:", err);
-  else console.log("Usuário criado/atualizado:", usuario);
-  db.close();
+    if (row) {
+      console.log("Usuário já existe:", USERNAME);
+      return;
+    }
+
+    const hash = await bcrypt.hash(PASSWORD, 10);
+    db.run(
+      "INSERT INTO usuarios (usuario, senha) VALUES (?, ?)",
+      [USERNAME, hash],
+      (err) => {
+        if (err) {
+          console.error("Erro ao criar usuário:", err);
+        } else {
+          console.log("Usuário criado com sucesso:", USERNAME);
+        }
+      }
+    );
+  });
 });
