@@ -1,51 +1,188 @@
-/* style.css */
-body {
-  font-family: Arial, sans-serif;
-  background: #f2f4f8;
+/* ======= RESET ======= */
+* {
   margin: 0;
-  color: #111;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", Arial, sans-serif;
 }
 
-/* header */
+/* ======= BODY ======= */
+body {
+  background: #f3f6fb;
+  color: #333;
+}
+
+/* ======= HEADER ======= */
 .header {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  background:#fff;
-  padding:12px 18px;
-  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,.08);
 }
-.logo { height:48px; }
-.header h1 { margin:0; color:#0d47a1; font-size:18px; }
 
-/* container */
-.container { max-width:1100px; margin:18px auto; padding:0 16px; }
-
-/* cards */
-.cards { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:18px; }
-.card { background:white; padding:16px; width:200px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,.06); text-align:center; border-left:4px solid #3b82f6; }
-.card h3 { margin:0; font-size:14px; color:#333; }
-.card p { margin-top:8px; font-size:18px; font-weight:700; }
-
-/* charts area handled inline in index */
-
-/* form / table */
-#formLancamento select, #formLancamento input, #formLancamento button {
-  padding:8px; border-radius:6px; border:1px solid #ccc; font-size:14px;
+.header .logo {
+  height: 48px;
+  border-radius: 8px;
 }
-#formLancamento button { background:#1e40af; color:#fff; border:none; cursor:pointer; padding:8px 14px; }
-table { width:100%; border-collapse:collapse; margin-top:16px; background:white; border-radius:8px; overflow:hidden; }
-thead { background:#1e3a8a; color:white; }
-td, th { padding:10px; border-bottom:1px solid #eee; text-align:left; }
 
-/* login */
-.login-main { display:flex; justify-content:center; align-items:flex-start; padding:24px 0; }
-.login-box { width:320px; background:white; padding:18px; border-radius:10px; box-shadow:0 8px 20px rgba(0,0,0,.08); text-align:center; }
-.login-box input { width:100%; padding:10px; margin-bottom:10px; border-radius:6px; border:1px solid #ccc; }
-.login-box button { width:100%; padding:10px; background:#1e40af; color:white; border:none; border-radius:6px; cursor:pointer; }
+.header h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
 
-/* small screens */
-@media (max-width: 760px) {
-  .cards { flex-direction:column; align-items:center; }
-  .chart-card { height:300px; }
+#logoutBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: .2s;
+}
+#logoutBtn:hover {
+  background: #dc2626;
+}
+
+/* ======= CARDS PRINCIPAIS ======= */
+.cards {
+  display: flex;
+  gap: 18px;
+  margin: 24px 0;
+}
+
+.card {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 3px 8px rgba(0,0,0,.06);
+  transition: .2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.card h3 {
+  font-size: 15px;
+  color: #666;
+}
+
+.card p {
+  margin-top: 8px;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+/* ======= CHARTS ======= */
+.charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 3px 8px rgba(0,0,0,.06);
+}
+
+/* ======= FILTROS ======= */
+.filters {
+  background: white;
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,.05);
+  margin-bottom: 12px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filters input {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #d4d4d8;
+}
+
+.filters button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.filters button:hover {
+  background: #2563eb;
+}
+
+/* ======= FORM LANCAMENTO ======= */
+#formLancamento {
+  background: white;
+  padding: 14px;
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,.05);
+}
+
+#formLancamento input,
+#formLancamento select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #d4d4d8;
+}
+
+/* ======= TABELA ======= */
+#tabela {
+  margin-top: 18px;
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,.05);
+}
+
+#tabela th {
+  background: #1e3a8a;
+  color: white;
+  padding: 12px;
+}
+
+#tabela td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Botões da tabela */
+.btn-edit {
+  background: #f59e0b;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+.btn-edit:hover {
+  background: #d97706;
+}
+
+.btn-delete {
+  background: #ef4444;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+.btn-delete:hover {
+  background: #dc2626;
 }
