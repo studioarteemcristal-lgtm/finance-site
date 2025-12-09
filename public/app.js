@@ -1,141 +1,253 @@
-// Carregar dados do localStorage
-function carregarDados() {
-    return JSON.parse(localStorage.getItem("dados")) || [];
-}
+// ============================
+// PAINEL FINANCEIRO — APP.JS
+// ============================
 
-// Salvar dados no localStorage
-function salvarDados(dados) {
-    localStorage.setItem("dados", JSON.stringify(dados));
-}
+// Lista de lançamentos armazenados
+let lancamentos = JSON.parse(localStorage.getItem("lancamentos")) || [];
 
-// Adicionar item
-function adicionarItem() {
-    const descricao = document.getElementById("descricao").value;
-    const valor = parseFloat(document.getElementById("valor").value);
-    const data = document.getElementById("data").value;
-    const tipo = document.getElementById("tipo").value;
+// Referências de elementos do DOM
+let tabelaBody, tipo, descricao, valor, dataLanc, editId, btnCancelEdit;
 
-    if (!descricao || isNaN(valor) || !data || !tipo) {
-        alert("Por favor, preencha todos os campos corretamente!");
+// Gráficos
+let pieChart = null;
+let lineChart = null;
+
+
+// ============================
+// INICIALIZAÇÃO
+// ============================
+document.addEventListener("DOMContentLoaded", () => {
+    // Mapear elementos
+    tabelaBody = document.querySelector("#tabela tbody");
+    tipo = document.getElementById("tipo");
+    descricao = document.getElementById("descricao");
+    valor = document.getElementById("valor");
+    dataLanc = document.getElementById("data");
+    editId = document.getElementById("editId");
+    btnCancelEdit = document.getElementById("btnCancelEdit");
+
+    // Eventos
+    document.getElementById("formLancamento").addEventListener("submit", salvarLancamento);
+    btnCancelEdit.addEventListener("click", cancelarEdicao);
+
+    document.getElementById("btnFilter").addEventListener("click", aplicarFiltro);
+    document.getElementById("btnResetFilter").addEventListener("click", limparFiltro);
+
+    // Atualizar interface
+    atualizarTabela(lancamentos);
+    atualizarDashboard();
+    atualizarGraficos();
+});
+
+
+// ============================
+// SALVAR OU EDITAR LANÇAMENTO
+// ============================
+function salvarLancamento(e) {
+    e.preventDefault();
+
+    const novo = {
+        id: editId.value ? Number(editId.value) : Date.now(),
+        tipo: tipo.value,
+        descricao: descricao.value,
+        valor: parseFloat(valor.value),
+        data: dataLanc.value
+    };
+
+    if (!novo.data) {
+        alert("Selecione uma data!");
         return;
     }
 
-    const dados = carregarDados();
-    dados.push({ descricao, valor, data, tipo });
-    salvarDados(dados);
+    if (editId.value) {
+        // Edição
+        lancamentos = lancamentos.map(l => (l.id === novo.id ? novo : l));
+    } else {
+        // Novo lançamento
+        lancamentos.push(novo);
+    }
 
-    atualizarTabela();
+    // Salvar
+    localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
+
+    // Atualizar interface
+    atualizarTabela(lancamentos);
     atualizarDashboard();
-    limparCampos();
+    atualizarGraficos();
+
+    // Resetar formulário
+    document.getElementById("formLancamento").reset();
+    editId.value = "";
+    btnCancelEdit.style.display = "none";
 }
 
-// Limpar inputs
-function limparCampos() {
-    document.getElementById("descricao").value = "";
-    document.getElementById("valor").value = "";
-    document.getElementById("data").value = "";
-    document.getElementById("tipo").value = "entrada";
+
+// ============================
+// CANCELAR EDIÇÃO
+// ============================
+function cancelarEdicao() {
+    editId.value = "";
+    document.getElementById("formLancamento").reset();
+    btnCancelEdit.style.display = "none";
 }
 
-// Remover item
-function removerItem(index) {
-    const dados = carregarDados();
-    dados.splice(index, 1);
-    salvarDados(dados);
 
-    atualizarTabela();
-    atualizarDashboard();
-}
+// ============================
+// CARREGAR TABELA
+// ============================
+function atualizarTabela(lista) {
+    tabelaBody.innerHTML = "";
 
-// Atualizar tabela principal
-function atualizarTabela() {
-    const dados = carregarDados();
-    const filtro = document.getElementById("filtro").value.toLowerCase();
-    const tabela = document.getElementById("tabela-body");
+    lista.forEach(l => {
+        const tr = document.createElement("tr");
 
-    tabela.innerHTML = "";
-
-    dados.forEach((item, index) => {
-        if (filtro !== "" && !item.descricao.toLowerCase().includes(filtro)) return;
-
-        const linha = `
-            <tr>
-                <td>${item.descricao}</td>
-                <td>${item.valor.toFixed(2)}</td>
-                <td>${item.data}</td>
-                <td class="${item.tipo === "entrada" ? "green" : "red"}">${item.tipo}</td>
-                <td><button class="remover-btn" onclick="removerItem(${index})">X</button></td>
-            </tr>
+        tr.innerHTML = `
+            <td>${l.tipo === "entrada" ? "Entrada" : "Saída"}</td>
+            <td>${l.descricao}</td>
+            <td>R$ ${l.valor.toFixed(2)}</td>
+            <td>${formatarData(l.data)}</td>
+            <td>
+                <button class="btn-edit" onclick="editar(${l.id})">Editar</button>
+                <button class="btn-delete" onclick="excluir(${l.id})">Excluir</button>
+            </td>
         `;
-        tabela.innerHTML += linha;
+
+        tabelaBody.appendChild(tr);
     });
 }
 
-// Atualizar dashboard (somatórios e gráfico)
+
+// ============================
+// EDITAR LANÇAMENTO
+// ============================
+function editar(id) {
+    const lanc = lancamentos.find(l => l.id === id);
+    if (!lanc) return;
+
+    editId.value = lanc.id;
+    tipo.value = lanc.tipo;
+    descricao.value = lanc.descricao;
+    valor.value = lanc.valor;
+    dataLanc.value = lanc.data;
+
+    btnCancelEdit.style.display = "inline-block";
+}
+
+
+// ============================
+// EXCLUIR LANÇAMENTO
+// ============================
+function excluir(id) {
+    if (!confirm("Deseja excluir este lançamento?")) return;
+
+    lancamentos = lancamentos.filter(l => l.id !== id);
+    localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
+
+    atualizarTabela(lancamentos);
+    atualizarDashboard();
+    atualizarGraficos();
+}
+
+
+// ============================
+// DASHBOARD (CARDS)
+// ============================
 function atualizarDashboard() {
-    const dados = carregarDados();
+    const entradas = lancamentos
+        .filter(l => l.tipo === "entrada")
+        .reduce((t, l) => t + l.valor, 0);
 
-    let totalVendas = 0;
-    let totalCompras = 0;
-    let byMonth = {};
+    const saídas = lancamentos
+        .filter(l => l.tipo === "saida")
+        .reduce((t, l) => t + l.valor, 0);
 
-    dados.forEach(l => {
-        const tipo = (l.tipo || "").toLowerCase();
-        const valor = Number(l.valor) || 0;
+    document.getElementById("totalVendas").innerText = `R$ ${entradas.toFixed(2)}`;
+    document.getElementById("totalCompras").innerText = `R$ ${saídas.toFixed(2)}`;
+    document.getElementById("totalCaixa").innerText = `R$ ${(entradas - saídas).toFixed(2)}`;
+}
 
-        // SOMATÓRIO — CORRETO E TESTADO
-        if (tipo === "entrada") {
-            totalVendas += valor;
-        } else if (tipo === "saida") {
-            totalCompras += valor;
-        }
 
-        // Agrupar por mês
-        if (l.data) {
-            const m = l.data.slice(0, 7);
-            byMonth[m] = (byMonth[m] || 0) + valor;
+// ============================
+// FILTRO POR DATA
+// ============================
+function aplicarFiltro() {
+    const de = document.getElementById("filterFrom").value;
+    const ate = document.getElementById("filterTo").value;
+
+    let filtrados = lancamentos;
+
+    if (de) filtrados = filtrados.filter(l => l.data >= de);
+    if (ate) filtrados = filtrados.filter(l => l.data <= ate);
+
+    atualizarTabela(filtrados);
+}
+
+function limparFiltro() {
+    document.getElementById("filterFrom").value = "";
+    document.getElementById("filterTo").value = "";
+    atualizarTabela(lancamentos);
+}
+
+
+// ============================
+// GRÁFICOS (CHART.JS)
+// ============================
+function atualizarGraficos() {
+    const entradas = lancamentos
+        .filter(l => l.tipo === "entrada")
+        .reduce((t, l) => t + l.valor, 0);
+
+    const saídas = lancamentos
+        .filter(l => l.tipo === "saida")
+        .reduce((t, l) => t + l.valor, 0);
+
+    // Gráfico de Pizza
+    const pieCtx = document.getElementById("pieChart").getContext("2d");
+
+    if (pieChart) pieChart.destroy();
+
+    pieChart = new Chart(pieCtx, {
+        type: "pie",
+        data: {
+            labels: ["Entradas", "Saídas"],
+            datasets: [{
+                data: [entradas, saídas]
+            }]
         }
     });
 
-    const lucro = totalVendas - totalCompras;
+    // Gráfico de Linha — Total por dia
+    const movimentoPorDia = {};
 
-    document.getElementById("total-vendas").innerText = totalVendas.toFixed(2);
-    document.getElementById("total-compras").innerText = totalCompras.toFixed(2);
-    document.getElementById("lucro").innerText = lucro.toFixed(2);
+    lancamentos.forEach(l => {
+        if (!movimentoPorDia[l.data]) movimentoPorDia[l.data] = 0;
+        movimentoPorDia[l.data] += l.tipo === "entrada" ? l.valor : -l.valor;
+    });
 
-    atualizarGrafico(byMonth);
-}
+    const datas = Object.keys(movimentoPorDia).sort();
+    const valores = datas.map(d => movimentoPorDia[d]);
 
-// Gráfico mensal
-let chart = null;
-function atualizarGrafico(byMonth) {
-    const ctx = document.getElementById("grafico").getContext("2d");
+    const lineCtx = document.getElementById("lineChart").getContext("2d");
 
-    const labels = Object.keys(byMonth).sort();
-    const values = labels.map(m => byMonth[m]);
+    if (lineChart) lineChart.destroy();
 
-    if (chart) chart.destroy();
-
-    chart = new Chart(ctx, {
+    lineChart = new Chart(lineCtx, {
         type: "line",
         data: {
-            labels: labels,
+            labels: datas.map(formatarData),
             datasets: [{
-                label: "Movimentação Mensal",
-                data: values,
-                borderWidth: 2,
-                fill: false
+                label: "Movimentação",
+                data: valores
             }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: true } }
         }
     });
 }
 
-// Executar ao carregar a página
-document.addEventListener("DOMContentLoaded", () => {
-    atualizarTabela();
-    atualizarDashboard();
-});
+
+// ============================
+// FUNÇÕES ÚTEIS
+// ============================
+function formatarData(dataISO) {
+    const [ano, mes, dia] = dataISO.split("-");
+    return `${dia}/${mes}/${ano}`;
+}
