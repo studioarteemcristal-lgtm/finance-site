@@ -1,62 +1,81 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Cadastro</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <title>Cadastro de valores</title>
+
+    <!-- Importa o Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 </head>
 <body>
-  <h1>Cadastro de valores</h1>
 
-  <!-- Formulário -->
-  <input id="descricao" placeholder="Descrição"><br>
-  <input id="valor" placeholder="Valor" type="number"><br>
-  <button onclick="salvar()">Salvar</button>
+    <h1>Cadastro de valores</h1>
 
-  <h2>Valores lançados</h2>
-  <div id="lista"></div>
+    <input type="text" id="tipo" placeholder="Tipo (ex: venda)">
+    <input type="number" id="valor" placeholder="Valor">
+    <button onclick="salvar()">Salvar</button>
 
-  <script>
-    // Conexão ao Supabase
-    const supabase = window.supabase.createClient(
-      "https://rdfkelztyromqcwdppon.supabase.co",  // sua URL
-      "SUA_CHAVE_ANON_AQUI"                       // sua anon key
-    );
+    <h2>Valores lançados</h2>
+    <div id="lista">Carregando...</div>
 
-    // Salvar registro
-    async function salvar() {
-      const descricao = document.getElementById("descricao").value;
-      const valor = document.getElementById("valor").value;
+    <script>
+        // -----------------------------
+        // CONFIGURAÇÃO SUPABASE NOVA
+        // -----------------------------
+        const supabaseUrl = "https://rdfkelztyromqcwdppon.supabase.co";
+        const supabaseKey = "sb_publishable_5S54OFP0_TAk1WSP6qwTVcA_C0V2uSJZ"; // Publishable Key
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-      const { data, error } = await supabase
-        .from("lancamentos")
-        .insert({ descricao, valor });
+        // -----------------------------------------
+        // FUNÇÃO PARA SALVAR
+        // -----------------------------------------
+        async function salvar() {
+            const tipo = document.getElementById("tipo").value;
+            const valor = document.getElementById("valor").value;
 
-      if (error) {
-        alert("Erro ao salvar: " + error.message);
-      } else {
+            const { error } = await supabaseClient
+                .from("lancamentos")
+                .insert([{ tipo, valor }]);
+
+            if (error) {
+                alert("Erro ao salvar: " + error.message);
+                return;
+            }
+
+            alert("Salvo com sucesso!");
+            carregar();
+        }
+
+        // -----------------------------------------
+        // FUNÇÃO PARA CARREGAR OS DADOS
+        // -----------------------------------------
+        async function carregar() {
+            const listaDiv = document.getElementById("lista");
+
+            const { data, error } = await supabaseClient
+                .from("lancamentos")
+                .select("*")
+                .order("id", { ascending: false });
+
+            if (error) {
+                listaDiv.innerHTML = "Erro ao carregar: " + error.message;
+                return;
+            }
+
+            if (data.length === 0) {
+                listaDiv.innerHTML = "Nenhum valor lançado ainda.";
+                return;
+            }
+
+            listaDiv.innerHTML = data.map(item =>
+                `<p><strong>${item.tipo}:</strong> R$ ${item.valor}</p>`
+            ).join("");
+        }
+
+        // Carrega ao abrir a página
         carregar();
-      }
-    }
+    </script>
 
-    // Ler registros
-    async function carregar() {
-      const { data, error } = await supabase
-        .from("lancamentos")
-        .select("*")
-        .order("id", { ascending: false });
-
-      if (error) {
-        document.getElementById("lista").innerText = "Erro ao carregar.";
-        return;
-      }
-
-      document.getElementById("lista").innerHTML =
-        data.map(item => `<p><b>${item.descricao}</b> — R$ ${item.valor}</p>`).join("");
-    }
-
-    // Carregar ao abrir a página
-    carregar();
-  </script>
 </body>
 </html>
