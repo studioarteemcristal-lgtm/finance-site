@@ -67,7 +67,7 @@ function salvarLancamento(e) {
         lancamentos.push(novo);
     }
 
-    // Salvar
+    // Salvar no localStorage
     localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
 
     // Atualizar interface
