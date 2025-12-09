@@ -28,9 +28,20 @@
 
   <main class="content container">
     <div class="cards">
-      <div class="card entrada"><h3>Entradas</h3><p id="totalVendas">R$ 0,00</p></div>
-      <div class="card saida"><h3>Saídas</h3><p id="totalCompras">R$ 0,00</p></div>
-      <div class="card caixa"><h3>Caixa</h3><p id="totalCaixa">R$ 0,00</p></div>
+      <div class="card entrada">
+        <h3>Entradas</h3>
+        <p id="totalVendas">R$ 0,00</p>
+      </div>
+
+      <div class="card saida">
+        <h3>Saídas</h3>
+        <p id="totalCompras">R$ 0,00</p>
+      </div>
+
+      <div class="card caixa">
+        <h3>Caixa</h3>
+        <p id="totalCaixa">R$ 0,00</p>
+      </div>
     </div>
 
     <div class="charts">
@@ -38,6 +49,7 @@
         <h4>Entradas x Saídas</h4>
         <canvas id="pieChart"></canvas>
       </div>
+
       <div class="chart-card">
         <h4>Movimentação (mês)</h4>
         <canvas id="lineChart"></canvas>
@@ -54,7 +66,8 @@
     </div>
 
     <form id="formLancamento">
-      <input type="hidden" id="editId" value="">
+      <input type="hidden" id="editId">
+
       <select id="tipo" required>
         <option value="entrada">Entrada</option>
         <option value="saida">Saída</option>
@@ -83,6 +96,7 @@
   </main>
 
   <script>
+    // Botão de logout simples
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("token");
       window.location.href = "login.html";
